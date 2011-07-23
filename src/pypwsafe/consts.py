@@ -1,5 +1,5 @@
 #===============================================================================
-# SYMANTEC:     Copyright © 2009-2011 Symantec Corporation. All rights reserved.
+# SYMANTEC:     Copyright (C) 2009-2011 Symantec Corporation. All rights reserved.
 #
 # This file is part of PyPWSafe.
 #
