@@ -19,12 +19,8 @@ Install Instructions
 	yum install libmcrypt-devel libmcrypt
 	These packages are needed by 
 2) Use Pip or easy install to install python-mcrypt
-3) Create the pypwsafe directory 
-	mkdir /usr/lib/python2.4/site-packages/pypwsafe
-4) Copy the pypwsafe module files
-	cp <path to extracted files>/pypwsafe/*.py /usr/lib/python2.4/site-packages/pypwsafe
-5) Test that the module loads
+3) Run the setup script
+	python setup.py install
+4) Test that the module loads
 	python -c "import pypwsafe"
-6) (Optional) Copy the executables to /usr/bin
-	cp <path to extracted files>/{psafedump.py} /usr/bin/
 	
