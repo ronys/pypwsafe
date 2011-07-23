@@ -1186,6 +1186,100 @@ this field not being set.
         #psafe_logger.debug("Serial to %s data %s"%(repr(ret),repr(self.data)))
         return ret
 
+class RunCommandRecordProp(RecordProp):
+    """Record's URL
+    runCommand    string
+
+    """
+    rTYPE = 0x12
+    rNAME = 'RunCommand'
+
+    def __init__(self, ptype = None, plen = 0, pdata = None):
+        if not ptype:
+            ptype = self.rTYPE
+        assert ptype == self.rTYPE
+        if not pdata:
+            self.runCommand = ''
+        else:
+            RecordProp.__init__(self, ptype, plen, pdata)
+
+    def parse(self):
+        self.runCommand = self.data[:self.len]
+
+    def __repr__(self):
+        return 'RunCommand' + RecordProp.__repr__(self)
+
+    def __str__(self):
+        return self.rNAME + "=" + repr(self.runCommand)
+
+    def get(self):
+        return self.runCommand
+
+    def set(self, value):
+        self.runCommand = str(value)
+
+    def serial(self):
+        #psafe_logger.debug("Serial to %s data %s"%(repr(self.url),repr(self.data)))
+        return self.runCommand
+
+class DoubleClickActionRecordProp(RecordProp):
+    """ Double click action 
+A two byte field contain the value of the Double-Click Action 'preference 
+390    value' (0xff means use the current Application default):
+391    Current 'preference values' are:
+392        CopyPassword           0
+393        ViewEdit               1
+394        AutoType               2
+395        Browse                 3
+396        CopyNotes              4
+397        CopyUsername           5
+398        CopyPasswordMinimize   6
+399        BrowsePlus             7
+
+
+    """
+    rTYPE = 0x13
+    rNAME = 'DoubleClickAction'
+
+    COPYPASSWORD = 0x00
+    VIEWEDIT = 0x01
+    AUTOTYPE = 0x02
+    BROWSE = 0x03
+    COPYNOTES = 0x04
+    COPYUSERNAME = 0x05
+    COPYPASSWORDMIN = 0x06
+    BROWSEPLUS = 0x07
+    DEFAULT = 0xff
+    def __init__(self, ptype = None, plen = 4, pdata = None, action = DEFAULT):
+        if not ptype:
+            ptype = self.rTYPE
+        assert ptype == self.rTYPE
+        if not pdata:
+            self.action = action
+        else:
+            RecordProp.__init__(self, ptype, plen, pdata)
+
+    def parse(self):
+        self.mydata = self.data[:self.len]
+        self.action = int(unpack('=l', self.mydata)[0])
+
+    def __repr__(self):
+        return self.rNAME + RecordProp.__repr__(self)
+
+    def __str__(self):
+        return self.rNAME + "=" + repr(self.action)
+
+    def get(self):
+        return self.action
+
+    def set(self, value):
+        self.action = int(value)
+
+    def serial(self):
+        ret = pack('=l', self.action)
+        #psafe_logger.debug("Serial to %s data %s"%(repr(ret),repr(self.data)))
+        return ret
+
 class EOERecordProp(RecordProp):
     """End of entry
 
