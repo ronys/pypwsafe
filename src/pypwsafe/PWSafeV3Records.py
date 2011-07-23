@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: latin-1 -*-
 #===============================================================================
 # SYMANTEC:     Copyright (C) 2009-2011 Symantec Corporation. All rights reserved.
 #
@@ -1352,7 +1353,7 @@ def Create_Prop(fetchblock_f):
             return RecordProp(rTYPE, rlen, data)
     else:
         # Unknown header
-        psafe_logger.info('Unknown header type %s' % repr(rTYPE))
+        psafe_logger.debug('Unknown header type %s' % repr(rTYPE))
         return RecordProp(rTYPE, rlen, data)
 
 if __name__ == "__main__":

@@ -6,6 +6,7 @@ Allow users to view Password Safe files.
 Created on Jul 22, 2011
 
 @author: paulson mcintyre <paul@gpmidi.net>
+@author: steve <rader@hep.wisc.edu>
 '''
 import logging, logging.config
 logger = logging.getLogger("psafebin.dump")
@@ -58,7 +59,21 @@ def display_xml(entries, opts):
     raise NotImplementedError
 
 def display_csv(entries, opts):
-    raise NotImplementedError
+    ret = ''
+    by_groups = {}
+    for entry in entries:
+        group = '.'.join(entry['Group'])
+        if not by_groups.has_key(group):
+            by_groups[group] = []
+        by_groups[group].append(entry)
+    groups = by_groups.keys()
+    groups.sort()
+    for group in groups:
+        by_groups[group].sort(lambda a, b: cmp(a['Title'] + a['Username'], b['Title'] + b['Username']))
+        for entry in by_groups[group]:
+            ret += "%r, " % group
+            ret += """%(Title)r, %(Username)r, %(Password)r\n""" % entry
+    return ret
 
 def display_display(entries, opts):
     ret = ''
