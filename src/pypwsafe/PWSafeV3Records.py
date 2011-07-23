@@ -31,7 +31,6 @@ from uuid import UUID, uuid4
 psafe_logger = logging.getLogger("psafe.lib.record")
 psafe_logger.debug('initing')
 
-
 class Record(object):
     """Represents a psafe3 record
     Container item: Name of properity
@@ -123,6 +122,15 @@ class Record(object):
             ret += r.serialiaze()
         return ret
 
+RecordPropTypes = {}
+
+class _RecordPropType(type):
+    def __init__(cls, name, bases, dct):
+        super(_RecordPropType, cls).__init__(name, bases, dct)
+        # Skip any where rType is none, such as the base class
+        if cls.rTYPE:
+            RecordPropTypes[cls.rTYPE] = cls
+
 #     Record Prop
 class RecordProp(object):
     """A single properity of a psafe3 record. This represents an unknown type or is overridden by records of a known type.
@@ -133,6 +141,9 @@ class RecordProp(object):
     raw_data    string        Record data including padding and headers
     data        string        Record data minus headers and padding
     """
+    # Auto-register all declared classes
+    __metaclass__ = _RecordPropType
+    
     rTYPE = None
     rNAME = "Unknown"
 
@@ -1222,25 +1233,6 @@ def parsedatetime(data):
 def makedatetime(dt):
     return pack('=i', calendar.timegm(dt))
 
-RecordPropTypes = {
-    0x01:UUIDRecordProp,
-    0x02:GroupRecordProp,
-    0x03:TitleRecordProp,
-    0x04:UsernameRecordProp,
-    0x05:NotesRecordProp,
-    0x06:PasswordRecordProp,
-    0x07:CreationTimeRecordProp,
-    0x08:ModTimeRecordProp,
-    0x09:LastAccessTimeRecordProp,
-    0x0a:PasswordExpiryTimeRecordProp,
-    0x0c:LastModificationTimeRecordProp,
-    0x0d:URLRecordProp,
-    0x0e:AutotypeRecordProp,
-    0x0f:PasswordHistoryRecordProp,
-    0x10:PasswordPolicyRecordProp,
-    0x11:PasswordExpiryIntervalRecordProp,
-    0xff:EOERecordProp,
-}
 def Create_Prop(fetchblock_f):
     """Returns a record properity. Uses fetchblock_f to read a 16 byte chunk of data
     fetchblock_f(number of blocks)
@@ -1272,4 +1264,3 @@ def Create_Prop(fetchblock_f):
 if __name__ == "__main__":
     import doctest
     doctest.testmod()
-

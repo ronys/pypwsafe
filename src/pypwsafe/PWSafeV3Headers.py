@@ -42,6 +42,15 @@ from pprint import pformat
 log = logging.getLogger("psafe.lib.header")
 log.debug('initing')
 
+headers = { }
+
+class _HeaderType(type):
+    def __init__(cls, name, bases, dct):
+        super(_HeaderType, cls).__init__(name, bases, dct)
+        # Skip any where TYPE is none, such as the base class
+        if cls.TYPE:
+            headers[cls.TYPE] = cls
+
 class Header(object):
     """A psafe3 header object. Should be extended. This also servers as a "unknown" header type.
     raw_data    string        Real data that was passed
@@ -51,7 +60,11 @@ class Header(object):
     TYPE        int        Header type that IDs it in psafe3
 
     """
+    # Auto-register new classes
+    __metaclass__ = _HeaderType
+    
     TYPE = None
+    
     def __init__(self, htype, hlen, raw_data):
         self.data = raw_data[5:(hlen + 5)]
         self.raw_data = raw_data
@@ -614,25 +627,6 @@ class EOFHeader(Header):
 
     def __str__(self):
         return "EOF"
-
-# TODO: Replace with auto-registration metaclass
-headers = {
-         0x00:VersionHeader,
-         0x01:UUIDHeader,
-         0x02:NonDefaultPrefsHeader,
-         0x03:TreeDisplayStatusHeader,
-         0x04:TimeStampOfLastSaveHeader,
-#         0x05:
-         0x06:LastSaveAppHeader,
-         0x07:LastSaveUserHeader,
-         0x08:LastSaveHostHeader,
-         0x09:DBNameHeader,
-         0x0a:DBDescHeader,
-#         0x0b:DBFiltersHeader,
-#         0x0f:RecentEntriesHeader,
-         
-         0xFF:EOFHeader,
-         }
 
 def Create_Header(fetchblock_f):
     """Returns a header object. Uses fetchblock_f to read a 16 byte chunk of data
