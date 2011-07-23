@@ -41,7 +41,7 @@ class Record(object):
 
 	"""
 
-    def __init__(self, fetchblock_f=None):
+    def __init__(self, fetchblock_f = None):
         psafe_logger.debug('Creating record object')
         self.records = []
         self.lk = {}
@@ -213,7 +213,7 @@ class UUIDRecordProp(RecordProp):
 	"""
     rTYPE = 0x01
     rNAME = 'UUID'
-    def __init__(self, ptype=None, plen=16, pdata=None):
+    def __init__(self, ptype = None, plen = 16, pdata = None):
         if not ptype:
             ptype = self.rTYPE
         assert ptype == self.rTYPE
@@ -223,7 +223,7 @@ class UUIDRecordProp(RecordProp):
             RecordProp.__init__(self, ptype, plen, pdata)
 
     def parse(self):
-        self.uuid = UUID(bytes=unpack('=16s', self.data)[0])
+        self.uuid = UUID(bytes = unpack('=16s', self.data)[0])
 
     def __repr__(self):
         return "UUID" + RecordProp.__repr__(self)
@@ -240,7 +240,7 @@ class UUIDRecordProp(RecordProp):
         if type(value) == UUID:
             self.uuid = value
         else:
-            self.uuid = UUID(fields=value)
+            self.uuid = UUID(fields = value)
 
     def serial(self):
         #psafe_logger.debug("Serial to %s",repr(pack('=16s',str(self.uuid.bytes))))
@@ -263,7 +263,7 @@ class GroupRecordProp(RecordProp):
     rTYPE = 0x02
     rNAME = 'Group'
 
-    def __init__(self, ptype=None, plen=0, pdata=None):
+    def __init__(self, ptype = None, plen = 0, pdata = None):
         if not ptype:
             ptype = self.rTYPE
         assert ptype == self.rTYPE
@@ -310,7 +310,7 @@ class TitleRecordProp(RecordProp):
     rTYPE = 0x03
     rNAME = 'Title'
 
-    def __init__(self, ptype=None, plen=0, pdata=None):
+    def __init__(self, ptype = None, plen = 0, pdata = None):
         if not ptype:
             ptype = self.rTYPE
         assert ptype == self.rTYPE
@@ -355,7 +355,7 @@ class UsernameRecordProp(RecordProp):
     rTYPE = 0x04
     rNAME = 'Username'
 
-    def __init__(self, ptype=None, plen=0, pdata=None):
+    def __init__(self, ptype = None, plen = 0, pdata = None):
         if not ptype:
             ptype = self.rTYPE
         assert ptype == self.rTYPE
@@ -401,7 +401,7 @@ class NotesRecordProp(RecordProp):
     rTYPE = 0x05
     rNAME = 'Notes'
 
-    def __init__(self, ptype=None, plen=0, pdata=None):
+    def __init__(self, ptype = None, plen = 0, pdata = None):
         if not ptype:
             ptype = self.rTYPE
         assert ptype == self.rTYPE
@@ -445,7 +445,7 @@ class PasswordRecordProp(RecordProp):
     rTYPE = 0x06
     rNAME = 'Password'
 
-    def __init__(self, ptype=None, plen=0, pdata=None):
+    def __init__(self, ptype = None, plen = 0, pdata = None):
         if not ptype:
             ptype = self.rTYPE
         assert ptype == self.rTYPE
@@ -491,7 +491,7 @@ class CreationTimeRecordProp(RecordProp):
     rTYPE = 0x07
     rNAME = 'ctime'
 
-    def __init__(self, ptype=None, plen=4, pdata=None):
+    def __init__(self, ptype = None, plen = 4, pdata = None):
         if not ptype:
             ptype = self.rTYPE
         assert ptype == self.rTYPE
@@ -535,7 +535,7 @@ class ModTimeRecordProp(RecordProp):
     rTYPE = 0x08
     rNAME = 'mtime'
 
-    def __init__(self, ptype=None, plen=4, pdata=None):
+    def __init__(self, ptype = None, plen = 4, pdata = None):
         if not ptype:
             ptype = self.rTYPE
         assert ptype == self.rTYPE
@@ -581,7 +581,7 @@ class LastAccessTimeRecordProp(RecordProp):
     rTYPE = 0x09
     rNAME = 'LastAccess'
 
-    def __init__(self, ptype=None, plen=4, pdata=None):
+    def __init__(self, ptype = None, plen = 4, pdata = None):
         if not ptype:
             ptype = self.rTYPE
         assert ptype == self.rTYPE
@@ -625,7 +625,7 @@ class PasswordExpiryTimeRecordProp(RecordProp):
     rTYPE = 0x0a
     rNAME = 'PasswordExpiry'
 
-    def __init__(self, ptype=None, plen=4, pdata=None):
+    def __init__(self, ptype = None, plen = 4, pdata = None):
         if not ptype:
             ptype = self.rTYPE
         assert ptype == self.rTYPE
@@ -670,7 +670,7 @@ class LastModificationTimeRecordProp(RecordProp):
     rTYPE = 0x0c
     rNAME = 'LastModification'
 
-    def __init__(self, ptype=None, plen=4, pdata=None):
+    def __init__(self, ptype = None, plen = 4, pdata = None):
         if not ptype:
             ptype = self.rTYPE
         assert ptype == self.rTYPE
@@ -714,7 +714,7 @@ class URLRecordProp(RecordProp):
     rTYPE = 0x0d
     rNAME = 'URL'
 
-    def __init__(self, ptype=None, plen=0, pdata=None):
+    def __init__(self, ptype = None, plen = 0, pdata = None):
         if not ptype:
             ptype = self.rTYPE
         assert ptype == self.rTYPE
@@ -759,7 +759,7 @@ class AutotypeRecordProp(RecordProp):
     rTYPE = 0x0e
     rNAME = 'Autotype'
 
-    def __init__(self, ptype=None, plen=0, pdata=None):
+    def __init__(self, ptype = None, plen = 0, pdata = None):
         if not ptype:
             ptype = self.rTYPE
         assert ptype == self.rTYPE
@@ -825,7 +825,7 @@ where:
     rTYPE = 0x0f
     rNAME = 'PasswordHistory'
 
-    def __init__(self, ptype=None, plen=0, pdata=None, enabled=0, maxsize=255):
+    def __init__(self, ptype = None, plen = 0, pdata = None, enabled = 0, maxsize = 255):
         if not ptype:
             ptype = self.rTYPE
         assert ptype == self.rTYPE
@@ -927,10 +927,10 @@ where:
             #used to return time.strftime("%a, %d %b %Y %H:%M:%S +0000",createddt)
             hist[createddt] = passwd
         return dict(
-            enable=self.enabled
-            , maxsize=self.maxsize
-            , currentsize=len(self.history)
-            , history=hist
+            enable = self.enabled
+            , maxsize = self.maxsize
+            , currentsize = len(self.history)
+            , history = hist
             )
 
     def set(self, value):
@@ -983,21 +983,21 @@ where:
     UNUSED = 0x01ff
 
     def __init__(self
-                 , ptype=None
-                 , plen=0
-                 , pdata=None
-                 , ttllen=14
-                 , minlow=2
-                 , minup=2
-                 , mindig=2
-                 , minsym=2
-                 , uselowercase=True
-                 , useuppercase=True
-                 , usedigits=True
-                 , usesymbols=True
-                 , usehex=False
-                 , useeasy=False
-                 , makepron=False
+                 , ptype = None
+                 , plen = 0
+                 , pdata = None
+                 , ttllen = 14
+                 , minlow = 2
+                 , minup = 2
+                 , mindig = 2
+                 , minsym = 2
+                 , uselowercase = True
+                 , useuppercase = True
+                 , usedigits = True
+                 , usesymbols = True
+                 , usehex = False
+                 , useeasy = False
+                 , makepron = False
                  ):
         if not ptype:
             ptype = self.rTYPE
@@ -1095,18 +1095,18 @@ where:
 
     def get(self):
         return dict(
-            UseLower=self.uselowercase
-            , UseUpper=self.useuppercase
-            , UseDigits=self.usedigits
-            , UseSymbols=self.usesymbols
-            , UseHex=self.usehex
-            , UseEasy=self.useeasy
-            , MakePronounceable=self.makepron
-            , TotalLen=self.ttllen
-            , MinLower=self.minlow
-            , MinUpper=self.minup
-            , MinDigits=self.mindig
-            , MinSymbols=self.minsym
+            UseLower = self.uselowercase
+            , UseUpper = self.useuppercase
+            , UseDigits = self.usedigits
+            , UseSymbols = self.usesymbols
+            , UseHex = self.usehex
+            , UseEasy = self.useeasy
+            , MakePronounceable = self.makepron
+            , TotalLen = self.ttllen
+            , MinLower = self.minlow
+            , MinUpper = self.minup
+            , MinDigits = self.mindig
+            , MinSymbols = self.minsym
        )
 
     def set(self, value):
@@ -1145,7 +1145,7 @@ this field not being set.
     rTYPE = 0x11
     rNAME = 'PasswordExpiryInterval'
 
-    def __init__(self, ptype=None, plen=4, pdata=None, ttl=0):
+    def __init__(self, ptype = None, plen = 4, pdata = None, ttl = 0):
         if not ptype:
             ptype = self.rTYPE
         assert ptype == self.rTYPE
@@ -1191,7 +1191,7 @@ class EOERecordProp(RecordProp):
     rTYPE = 0xff
     rNAME = 'EOE'
 
-    def __init__(self, ptype=None, plen=0, pdata=None):
+    def __init__(self, ptype = None, plen = 0, pdata = None):
         if not ptype:
             ptype = self.rTYPE
         assert ptype == self.rTYPE

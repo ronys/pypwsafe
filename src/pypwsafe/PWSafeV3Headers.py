@@ -125,7 +125,7 @@ class VersionHeader(Header):
     """
     TYPE = 0x00
 
-    def __init__(self, htype=None, hlen=2, raw_data=None, version=0x305):
+    def __init__(self, htype = None, hlen = 2, raw_data = None, version = 0x305):
         if not htype:
             htype = self.TYPE
         if raw_data:
@@ -161,7 +161,7 @@ DHeader(1,16,'\x10\x00\x00\x00\x01\xbdV\x92{H\xdbL\xec\xbb+\xe90w5\x17\xa2P6b\xe
     """
     TYPE = 0x01
 
-    def __init__(self, htype=None, hlen=16, raw_data=None):
+    def __init__(self, htype = None, hlen = 16, raw_data = None):
         if not htype:
             htype = self.TYPE
         if raw_data:
@@ -171,7 +171,7 @@ DHeader(1,16,'\x10\x00\x00\x00\x01\xbdV\x92{H\xdbL\xec\xbb+\xe90w5\x17\xa2P6b\xe
 
     def parse(self):
         """Parse data"""
-        self.uuid = UUID(bytes=unpack('=16s', self.data)[0])
+        self.uuid = UUID(bytes = unpack('=16s', self.data)[0])
 
     def __repr__(self):
         return "UUID" + Header.__repr__(self)
@@ -196,7 +196,7 @@ K:V for opts:
     """
     TYPE = 0x02
 
-    def __init__(self, htype=None, hlen=2, raw_data=None, **kw):
+    def __init__(self, htype = None, hlen = 2, raw_data = None, **kw):
         if not htype:
             htype = self.TYPE
         if raw_data:
@@ -315,7 +315,7 @@ class TreeDisplayStatusHeader(Header):
     """
     TYPE = 0x03
 
-    def __init__(self, htype=None, hlen=1, raw_data=None, status=''):
+    def __init__(self, htype = None, hlen = 1, raw_data = None, status = ''):
         if not htype:
             htype = self.TYPE
         if raw_data:
@@ -345,7 +345,7 @@ class LastSaveAppHeader(Header):
     """
     TYPE = 0x03
 
-    def __init__(self, htype=None, hlen=1, raw_data=None, status=''):
+    def __init__(self, htype = None, hlen = 1, raw_data = None, status = ''):
         if not htype:
             htype = self.TYPE
         if raw_data:
@@ -384,7 +384,7 @@ class EOFHeader(Header):
     """
     TYPE = 0xff
     data = ''
-    def __init__(self, htype=None, hlen=0, raw_data=''):
+    def __init__(self, htype = None, hlen = 0, raw_data = ''):
         if not htype:
             htype = self.TYPE
         if raw_data:
