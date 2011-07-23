@@ -64,9 +64,10 @@ def display_display(entries, opts):
     ret = ''
     by_groups = {}
     for entry in entries:
-        if not by_groups.has_key(entry['Group']):
-            by_groups[entry['Group']] = []
-        by_groups[entry['Group']].append(entry)
+        group = '.'.join(entry['Group'])
+        if not by_groups.has_key(group):
+            by_groups[group] = []
+        by_groups[group].append(entry)
     groups = by_groups.keys()
     # In place!
     groups.sort()
