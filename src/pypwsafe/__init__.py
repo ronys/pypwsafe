@@ -293,7 +293,7 @@ class PWSafe3(object):
 
         if self.current_hmac(cached = True) != self.hmac:
             log.error('Invalid HMAC Calculated: %s File: %s' % (repr(self.current_hmac()), repr(self.hmac)))
-            #raise InvalidHMACError, "Calculated: %s File: %s"%(repr(self.current_hmac()),repr(self.hmac))
+            raise InvalidHMACError, "Calculated: %s File: %s" % (repr(self.current_hmac()), repr(self.hmac))
 
     def __str__(self):
         ret = ''
