@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #===============================================================================
-# SYMANTEC:     Copyright © 2009-2011 Symantec Corporation. All rights reserved.
+# SYMANTEC:     Copyright (C) 2009-2011 Symantec Corporation. All rights reserved.
 #
 # This file is part of PyPWSafe.
 #
@@ -42,6 +42,15 @@ from pprint import pformat
 log = logging.getLogger("psafe.lib.header")
 log.debug('initing')
 
+headers = { }
+
+class _HeaderType(type):
+    def __init__(cls, name, bases, dct):
+        super(_HeaderType, cls).__init__(name, bases, dct)
+        # Skip any where TYPE is none, such as the base class
+        if cls.TYPE:
+            headers[cls.TYPE] = cls
+
 class Header(object):
     """A psafe3 header object. Should be extended. This also servers as a "unknown" header type.
     raw_data    string        Real data that was passed
@@ -51,7 +60,11 @@ class Header(object):
     TYPE        int        Header type that IDs it in psafe3
 
     """
+    # Auto-register new classes
+    __metaclass__ = _HeaderType
+    
     TYPE = None
+    
     def __init__(self, htype, hlen, raw_data):
         self.data = raw_data[5:(hlen + 5)]
         self.raw_data = raw_data
@@ -108,7 +121,7 @@ class Header(object):
 
 class VersionHeader(Header):
     """Version header object
-    version		int		Psafe version
+    version        int        Psafe version
 
 >>> x=VersionHeader(0,2,'\x02\x00\x00\x00\x00\x02\x03\xb45C\x1d\xea\x08\x155\x02')
 >>> str(x)
@@ -125,7 +138,7 @@ class VersionHeader(Header):
     """
     TYPE = 0x00
 
-    def __init__(self, htype=None, hlen=2, raw_data=None, version=0x305):
+    def __init__(self, htype = None, hlen = 2, raw_data = None, version = 0x305):
         if not htype:
             htype = self.TYPE
         if raw_data:
@@ -161,7 +174,7 @@ DHeader(1,16,'\x10\x00\x00\x00\x01\xbdV\x92{H\xdbL\xec\xbb+\xe90w5\x17\xa2P6b\xe
     """
     TYPE = 0x01
 
-    def __init__(self, htype=None, hlen=16, raw_data=None):
+    def __init__(self, htype = None, hlen = 16, raw_data = None):
         if not htype:
             htype = self.TYPE
         if raw_data:
@@ -171,7 +184,7 @@ DHeader(1,16,'\x10\x00\x00\x00\x01\xbdV\x92{H\xdbL\xec\xbb+\xe90w5\x17\xa2P6b\xe
 
     def parse(self):
         """Parse data"""
-        self.uuid = UUID(bytes=unpack('=16s', self.data)[0])
+        self.uuid = UUID(bytes = unpack('=16s', self.data)[0])
 
     def __repr__(self):
         return "UUID" + Header.__repr__(self)
@@ -196,7 +209,7 @@ K:V for opts:
     """
     TYPE = 0x02
 
-    def __init__(self, htype=None, hlen=2, raw_data=None, **kw):
+    def __init__(self, htype = None, hlen = 2, raw_data = None, **kw):
         if not htype:
             htype = self.TYPE
         if raw_data:
@@ -315,7 +328,7 @@ class TreeDisplayStatusHeader(Header):
     """
     TYPE = 0x03
 
-    def __init__(self, htype=None, hlen=1, raw_data=None, status=''):
+    def __init__(self, htype = None, hlen = 1, raw_data = None, status = ''):
         if not htype:
             htype = self.TYPE
         if raw_data:
@@ -337,39 +350,256 @@ class TreeDisplayStatusHeader(Header):
         return self.status
 
 # Header(4,4,'Ao\xc8L'),
-
-# Header(6,19,'Password Safe V3.23'),
-class LastSaveAppHeader(Header):
-    """ What app performed the last save
-  
+from pypwsafe.PWSafeV3Records import parsedatetime, makedatetime
+import time
+class TimeStampOfLastSaveHeader(Header):
+    """ Timestamp of last save. 
+lastsave    time struct        Last save time of DB
     """
-    TYPE = 0x03
+    TYPE = 0x04
 
-    def __init__(self, htype=None, hlen=1, raw_data=None, status=''):
+    def __init__(self, htype = None, hlen = 1, raw_data = None, lastsave = time.gmtime()):
         if not htype:
             htype = self.TYPE
         if raw_data:
             Header.__init__(self, htype, hlen, raw_data)
         else:
-            self.status = status
+            self.lastsave = lastsave
 
     def parse(self):
         """Parse data"""
-        self.status = self.data
+        self.lastsave = time.gmtime(unpack('=i', self.data)[0])
 
     def __repr__(self):
-        return "Status" + Header.__repr__(self)
+        return "LastSave" + Header.__repr__(self)
 
     def __str__(self):
-        return "Status=%r" % self.status
+        return "LastSave(%r)" % time.strftime("%a, %d %b %Y %H:%M:%S +0000", self.lastsave)
 
     def serial(self):
-        return self.status
+        return makedatetime(self.lastsave)
+
+#TODO: Add support for this header type
+#class WhoLastSavedHeader(Header):
+#    """ User who last saved the DB.     DEPRECATED
+#    """
+#    TYPE = 0x05
+#
+#    def __init__(self, htype = None, hlen = 1, raw_data = None, status = ''):
+#        if not htype:
+#            htype = self.TYPE
+#        if raw_data:
+#            Header.__init__(self, htype, hlen, raw_data)
+#        else:
+#            self.status = status
+#
+#    def parse(self):
+#        """Parse data"""
+#        self.lastsave = time.gmtime(unpack('=i', self.data)[0])
+#
+#    def __repr__(self):
+#        return "LastSave" + Header.__repr__(self)
+#
+#    def __str__(self):
+#        return "LastSave(%r)" % time.strftime("%a, %d %b %Y %H:%M:%S +0000", self.lastsave)
+#
+#    def serial(self):
+#        return makedatetime(self.lastsave)
+
+# Header(6,19,'Password Safe V3.23'),
+class LastSaveAppHeader(Header):
+    """ What app performed the last save
+lastSaveApp        string        Last saved by this app
+    """
+    TYPE = 0x06
+
+    def __init__(self, htype = None, hlen = 1, raw_data = None, lastSaveApp = ''):
+        if not htype:
+            htype = self.TYPE
+        if raw_data:
+            Header.__init__(self, htype, hlen, raw_data)
+        else:
+            self.lastSaveApp = lastSaveApp
+
+    def parse(self):
+        """Parse data"""
+        self.lastSaveApp = self.data
+
+    def __repr__(self):
+        return "LastSaveApp" + Header.__repr__(self)
+
+    def __str__(self):
+        return "LastSaveAppHeader=%r" % self.lastSaveApp
+
+    def serial(self):
+        return self.lastSaveApp
 
 # Header(7,6,'owenst'),
-# Header(8,15,'SOC01XENAPPMGR1'),
+class LastSaveUserHeader(Header):
+    """ User who last saved the DB. 
+username    string        
+    """
+    TYPE = 0x07
 
+    def __init__(self, htype = None, hlen = 1, raw_data = None, username = ''):
+        if not htype:
+            htype = self.TYPE
+        if raw_data:
+            Header.__init__(self, htype, hlen, raw_data)
+        else:
+            self.username = username
 
+    def parse(self):
+        """Parse data"""
+        self.username = self.data
+
+    def __repr__(self):
+        return "LastSaveUser" + Header.__repr__(self)
+
+    def __str__(self):
+        return "LastSaveUserHeader(%r)" % self.username
+
+    def serial(self):
+        return self.username
+
+# Header(8,15,'SOMEHOSTNAME'),
+class LastSaveHostHeader(Header):
+    """ Host that last saved the DB 
+hostname    string        
+    """
+    TYPE = 0x08
+
+    def __init__(self, htype = None, hlen = 1, raw_data = None, hostname = ''):
+        if not htype:
+            htype = self.TYPE
+        if raw_data:
+            Header.__init__(self, htype, hlen, raw_data)
+        else:
+            self.hostname = hostname
+
+    def parse(self):
+        """Parse data"""
+        self.hostname = self.data
+
+    def __repr__(self):
+        return "LastSaveHost" + Header.__repr__(self)
+
+    def __str__(self):
+        return "LastSaveHostHeader(%r)" % self.hostname
+
+    def serial(self):
+        return self.hostname
+
+class DBNameHeader(Header):
+    """ Name of the database
+dbName        String
+    """
+    TYPE = 0x09
+
+    def __init__(self, htype = None, hlen = 1, raw_data = None, dbName = ''):
+        if not htype:
+            htype = self.TYPE
+        if raw_data:
+            Header.__init__(self, htype, hlen, raw_data)
+        else:
+            self.dbName = dbName
+
+    def parse(self):
+        """Parse data"""
+        self.dbName = self.data
+
+    def __repr__(self):
+        return "DBName" + Header.__repr__(self)
+
+    def __str__(self):
+        return "DBNameHeader(%r)" % self.dbName
+
+    def serial(self):
+        return self.dbName
+    
+class DBDescHeader(Header):
+    """ Description of the database
+dbDesc        String
+    """
+    TYPE = 0x0a
+
+    def __init__(self, htype = None, hlen = 1, raw_data = None, dbDesc = ''):
+        if not htype:
+            htype = self.TYPE
+        if raw_data:
+            Header.__init__(self, htype, hlen, raw_data)
+        else:
+            self.dbDesc = dbDesc
+
+    def parse(self):
+        """Parse data"""
+        self.dbDesc = self.data
+
+    def __repr__(self):
+        return "DBDesc" + Header.__repr__(self)
+
+    def __str__(self):
+        return "DBDescHeader(%r)" % self.dbDesc
+
+    def serial(self):
+        return self.dbDesc
+
+#class DBFiltersHeader(Header):
+#    """ Description of the database
+#dbDesc        String
+#    """
+#    TYPE = 0x0b
+#
+#    def __init__(self, htype = None, hlen = 1, raw_data = None, dbDesc = ''):
+#        if not htype:
+#            htype = self.TYPE
+#        if raw_data:
+#            Header.__init__(self, htype, hlen, raw_data)
+#        else:
+#            self.dbDesc = dbDesc
+#
+#    def parse(self):
+#        """Parse data"""
+#        self.dbDesc = self.data
+#
+#    def __repr__(self):
+#        return "DBFilters" + Header.__repr__(self)
+#
+#    def __str__(self):
+#        return "DBFiltersHeader(%r)" % self.dbDesc
+#
+#    def serial(self):
+#        return self.dbDesc
+    
+# TODO: Figure out what "reserved" headers are used for in other apps
+
+# TODO: Fill this in once we have something to test against 
+#class RecentEntriesHeader(Header):
+#    """ Description of the database
+#recentEntries        List of UUIDs
+#    """
+#    TYPE = 0x0f
+#
+#    def __init__(self, htype = None, hlen = 1, raw_data = None, recentEntries = []):
+#        if not htype:
+#            htype = self.TYPE
+#        if raw_data:
+#            Header.__init__(self, htype, hlen, raw_data)
+#        else:
+#            self.recentEntries = recentEntries
+#
+#    def parse(self):
+#        """Parse data"""
+#        self.recentEntries = []
+#
+#    def __repr__(self):
+#        return "RecentEntries" + Header.__repr__(self)
+#
+#    def __str__(self):
+#        return "RecentEntriesHeader(%r)" % self.recentEntries
+#
+#    def serial(self):
+#        return self.dbDesc    
 
 class EOFHeader(Header):
     """End of headers
@@ -384,7 +614,7 @@ class EOFHeader(Header):
     """
     TYPE = 0xff
     data = ''
-    def __init__(self, htype=None, hlen=0, raw_data=''):
+    def __init__(self, htype = None, hlen = 0, raw_data = ''):
         if not htype:
             htype = self.TYPE
         if raw_data:
@@ -397,13 +627,6 @@ class EOFHeader(Header):
 
     def __str__(self):
         return "EOF"
-
-headers = {
-         0x00:VersionHeader,
-         0x01:UUIDHeader,
-         0x02:NonDefaultPrefsHeader,
-         0xFF:EOFHeader
-         }
 
 def Create_Header(fetchblock_f):
     """Returns a header object. Uses fetchblock_f to read a 16 byte chunk of data
@@ -429,3 +652,4 @@ def Create_Header(fetchblock_f):
 if __name__ == "__main__":
     import doctest
     doctest.testmod()
+    

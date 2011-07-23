@@ -1,23 +1,26 @@
-A pure-Python library that can read and write Password Safe v3 files has been released under the GPLv2 by Symantec. Attached is a copy of the latest code. 
+A pure-Python library that can read and write Password Safe v3 files has been released under the GPLv2 by Symantec. 
 
-Id like to either host this as a sub-project out of the Password Safe project or create a new SourceForge/Google Code project for this library. Thoughts? 
+
 
 There are a few known issues: 
 
 1) HMAC validation fails with some recent versions of Password Safe. I suspect this is an issue with the support for bug 1812081. 
-2) Some of the more recent record properties arent supported
+2) Some of the more recent record properties aren't supported
 3) Lack of documentation
+4) Unit tests are out-of-date
+5) Need to add an install script
 
-I intend to update the library to correct these issues as time allows. 
+Deps: 
+1) python-mcrypt
+2) hashlib
 
-I can be reached with any thoughts, ideas, or concerns via paul at gpmidi net. 
-
-Best Regards, 
-
-Paulson McIntyre
-Sr. Security Engineer
-Managed Security Services
-Symantec Corporation
-www.symantec.com
-Office: (571) 289 0935
-
+Install Instructions
+1) Install libmcrypt and it's dev package: 
+	yum install libmcrypt-devel libmcrypt
+	These packages are needed by 
+2) Use Pip or easy install to install python-mcrypt
+3) Run the setup script
+	python setup.py install
+4) Test that the module loads
+	python -c "import pypwsafe"
+	

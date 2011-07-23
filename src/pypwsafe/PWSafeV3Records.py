@@ -1,6 +1,7 @@
 #!/usr/bin/env python
+# -*- coding: latin-1 -*-
 #===============================================================================
-# SYMANTEC:     Copyright © 2009-2011 Symantec Corporation. All rights reserved.
+# SYMANTEC:     Copyright (C) 2009-2011 Symantec Corporation. All rights reserved.
 #
 # This file is part of PyPWSafe.
 #
@@ -31,17 +32,16 @@ from uuid import UUID, uuid4
 psafe_logger = logging.getLogger("psafe.lib.record")
 psafe_logger.debug('initing')
 
-
 class Record(object):
     """Represents a psafe3 record
-	Container item: Name of properity
-	Attrs
-	records		[RecordProp]		List of properities
-	lk		{TypeName:RecordProp}
+    Container item: Name of properity
+    Attrs
+    records        [RecordProp]        List of properities
+    lk        {TypeName:RecordProp}
 
-	"""
+    """
 
-    def __init__(self, fetchblock_f=None):
+    def __init__(self, fetchblock_f = None):
         psafe_logger.debug('Creating record object')
         self.records = []
         self.lk = {}
@@ -123,16 +123,28 @@ class Record(object):
             ret += r.serialiaze()
         return ret
 
-# 	Record Prop
+RecordPropTypes = {}
+
+class _RecordPropType(type):
+    def __init__(cls, name, bases, dct):
+        super(_RecordPropType, cls).__init__(name, bases, dct)
+        # Skip any where rType is none, such as the base class
+        if cls.rTYPE:
+            RecordPropTypes[cls.rTYPE] = cls
+
+#     Record Prop
 class RecordProp(object):
     """A single properity of a psafe3 record. This represents an unknown type or is overridden by records of a known type.
-	rTYPE		int		Properity type. May be null.
-	rNAME		string		Code name of properity type.
-	type		int		Prop type.
-	len		int		Length, in bytes, of data
-	raw_data	string		Record data including padding and headers
-	data		string		Record data minus headers and padding
-	"""
+    rTYPE        int        Properity type. May be null.
+    rNAME        string        Code name of properity type.
+    type        int        Prop type.
+    len        int        Length, in bytes, of data
+    raw_data    string        Record data including padding and headers
+    data        string        Record data minus headers and padding
+    """
+    # Auto-register all declared classes
+    __metaclass__ = _RecordPropType
+    
     rTYPE = None
     rNAME = "Unknown"
 
@@ -202,7 +214,7 @@ class RecordProp(object):
 
 class UUIDRecordProp(RecordProp):
     """Record's unique id
-	uuid		uuid.UUID
+    uuid        uuid.UUID
 >>> x=UUIDRecordProp(0x1,16,'\x10\x00\x00\x00\x01\xfa@\xbd\x1f \xf5B\xf5\x88v#\xe4\x08\xae\x8a\xa1@\x16[\xfb\x8c\x87mq\xf70[')
 >>> repr(x)
 "UUIDRecordProp(0x1,16,'\\x10\\x00\\x00\\x00\\x01\\xfa@\\xbd\\x1f \\xf5B\\xf5\\x88v#\\xe4\\x08\\xae\\x8a\\xa1@\\x16[\\xfb\\x8c\\x87mq\\xf70[')"
@@ -210,10 +222,10 @@ class UUIDRecordProp(RecordProp):
 'UUID=fa40bd1f-20f5-42f5-8876-23e408ae8aa1'
 >>> x.serial()
 '\xfa@\xbd\x1f \xf5B\xf5\x88v#\xe4\x08\xae\x8a\xa1'
-	"""
+    """
     rTYPE = 0x01
     rNAME = 'UUID'
-    def __init__(self, ptype=None, plen=16, pdata=None):
+    def __init__(self, ptype = None, plen = 16, pdata = None):
         if not ptype:
             ptype = self.rTYPE
         assert ptype == self.rTYPE
@@ -223,7 +235,7 @@ class UUIDRecordProp(RecordProp):
             RecordProp.__init__(self, ptype, plen, pdata)
 
     def parse(self):
-        self.uuid = UUID(bytes=unpack('=16s', self.data)[0])
+        self.uuid = UUID(bytes = unpack('=16s', self.data)[0])
 
     def __repr__(self):
         return "UUID" + RecordProp.__repr__(self)
@@ -240,7 +252,7 @@ class UUIDRecordProp(RecordProp):
         if type(value) == UUID:
             self.uuid = value
         else:
-            self.uuid = UUID(fields=value)
+            self.uuid = UUID(fields = value)
 
     def serial(self):
         #psafe_logger.debug("Serial to %s",repr(pack('=16s',str(self.uuid.bytes))))
@@ -248,8 +260,8 @@ class UUIDRecordProp(RecordProp):
 
 class GroupRecordProp(RecordProp):
     """Record's Group
-	group_str	string		Raw group string
-	group		[string]	List of the groups. First entry is the top level group.
+    group_str    string        Raw group string
+    group        [string]    List of the groups. First entry is the top level group.
 >>> x=GroupRecordProp(0x2,7,'\x07\x00\x00\x00\x02Group 0\x11"\xf1\x84')
 >>> str(x)
 "Group: 'Group 0'"
@@ -259,11 +271,11 @@ class GroupRecordProp(RecordProp):
 ['Group 0']
 >>> x.serial()
 '\x07\x00\x00\x00\x02Group 0'
-	"""
+    """
     rTYPE = 0x02
     rNAME = 'Group'
 
-    def __init__(self, ptype=None, plen=0, pdata=None):
+    def __init__(self, ptype = None, plen = 0, pdata = None):
         if not ptype:
             ptype = self.rTYPE
         assert ptype == self.rTYPE
@@ -295,7 +307,7 @@ class GroupRecordProp(RecordProp):
 
 class TitleRecordProp(RecordProp):
     """Record's title
-	title		string		Title
+    title        string        Title
 >>> x=TitleRecordProp(0x3,7,'\x07\x00\x00\x00\x03Title 0\xd5\xed\xf5l')
 >>> str(x)
 "Title='Title 0'"
@@ -306,11 +318,11 @@ class TitleRecordProp(RecordProp):
 >>> x.get()
 'Title 0'
 
-	"""
+    """
     rTYPE = 0x03
     rNAME = 'Title'
 
-    def __init__(self, ptype=None, plen=0, pdata=None):
+    def __init__(self, ptype = None, plen = 0, pdata = None):
         if not ptype:
             ptype = self.rTYPE
         assert ptype == self.rTYPE
@@ -341,7 +353,7 @@ class TitleRecordProp(RecordProp):
 
 class UsernameRecordProp(RecordProp):
     """Record's username
-	username	string		...
+    username    string        ...
 >>> x=UsernameRecordProp(0x4,9,'\t\x00\x00\x00\x04username0\x06\xfb')
 >>> str(x)
 "Username='username0'"
@@ -351,11 +363,11 @@ class UsernameRecordProp(RecordProp):
 'username0'
 >>> x.serial()
 'username0'
-	"""
+    """
     rTYPE = 0x04
     rNAME = 'Username'
 
-    def __init__(self, ptype=None, plen=0, pdata=None):
+    def __init__(self, ptype = None, plen = 0, pdata = None):
         if not ptype:
             ptype = self.rTYPE
         assert ptype == self.rTYPE
@@ -386,7 +398,7 @@ class UsernameRecordProp(RecordProp):
 
 class NotesRecordProp(RecordProp):
     """Record notes
-	notes		string		...
+    notes        string        ...
 >>> x=NotesRecordProp(0x5,10,'\n\x00\x00\x00\x05more notes\x8c')
 >>> str(x)
 "Notes='more notes'"
@@ -397,11 +409,11 @@ class NotesRecordProp(RecordProp):
 >>> x.serial()
 'more notes'
 
-	"""
+    """
     rTYPE = 0x05
     rNAME = 'Notes'
 
-    def __init__(self, ptype=None, plen=0, pdata=None):
+    def __init__(self, ptype = None, plen = 0, pdata = None):
         if not ptype:
             ptype = self.rTYPE
         assert ptype == self.rTYPE
@@ -431,7 +443,7 @@ class NotesRecordProp(RecordProp):
 
 class PasswordRecordProp(RecordProp):
     """Record's  password
-	password	string		...
+    password    string        ...
 >>> x=PasswordRecordProp(0x6,9,'\t\x00\x00\x00\x06password0d\xe7')
 >>> str(x)
 "Password='password0'"
@@ -441,11 +453,11 @@ class PasswordRecordProp(RecordProp):
 'password0'
 >>> x.serial()
 'password0'
-	"""
+    """
     rTYPE = 0x06
     rNAME = 'Password'
 
-    def __init__(self, ptype=None, plen=0, pdata=None):
+    def __init__(self, ptype = None, plen = 0, pdata = None):
         if not ptype:
             ptype = self.rTYPE
         assert ptype == self.rTYPE
@@ -491,7 +503,7 @@ class CreationTimeRecordProp(RecordProp):
     rTYPE = 0x07
     rNAME = 'ctime'
 
-    def __init__(self, ptype=None, plen=4, pdata=None):
+    def __init__(self, ptype = None, plen = 4, pdata = None):
         if not ptype:
             ptype = self.rTYPE
         assert ptype == self.rTYPE
@@ -535,7 +547,7 @@ class ModTimeRecordProp(RecordProp):
     rTYPE = 0x08
     rNAME = 'mtime'
 
-    def __init__(self, ptype=None, plen=4, pdata=None):
+    def __init__(self, ptype = None, plen = 4, pdata = None):
         if not ptype:
             ptype = self.rTYPE
         assert ptype == self.rTYPE
@@ -581,7 +593,7 @@ class LastAccessTimeRecordProp(RecordProp):
     rTYPE = 0x09
     rNAME = 'LastAccess'
 
-    def __init__(self, ptype=None, plen=4, pdata=None):
+    def __init__(self, ptype = None, plen = 4, pdata = None):
         if not ptype:
             ptype = self.rTYPE
         assert ptype == self.rTYPE
@@ -625,7 +637,7 @@ class PasswordExpiryTimeRecordProp(RecordProp):
     rTYPE = 0x0a
     rNAME = 'PasswordExpiry'
 
-    def __init__(self, ptype=None, plen=4, pdata=None):
+    def __init__(self, ptype = None, plen = 4, pdata = None):
         if not ptype:
             ptype = self.rTYPE
         assert ptype == self.rTYPE
@@ -670,7 +682,7 @@ class LastModificationTimeRecordProp(RecordProp):
     rTYPE = 0x0c
     rNAME = 'LastModification'
 
-    def __init__(self, ptype=None, plen=4, pdata=None):
+    def __init__(self, ptype = None, plen = 4, pdata = None):
         if not ptype:
             ptype = self.rTYPE
         assert ptype == self.rTYPE
@@ -714,7 +726,7 @@ class URLRecordProp(RecordProp):
     rTYPE = 0x0d
     rNAME = 'URL'
 
-    def __init__(self, ptype=None, plen=0, pdata=None):
+    def __init__(self, ptype = None, plen = 0, pdata = None):
         if not ptype:
             ptype = self.rTYPE
         assert ptype == self.rTYPE
@@ -759,7 +771,7 @@ class AutotypeRecordProp(RecordProp):
     rTYPE = 0x0e
     rNAME = 'Autotype'
 
-    def __init__(self, ptype=None, plen=0, pdata=None):
+    def __init__(self, ptype = None, plen = 0, pdata = None):
         if not ptype:
             ptype = self.rTYPE
         assert ptype == self.rTYPE
@@ -825,7 +837,7 @@ where:
     rTYPE = 0x0f
     rNAME = 'PasswordHistory'
 
-    def __init__(self, ptype=None, plen=0, pdata=None, enabled=0, maxsize=255):
+    def __init__(self, ptype = None, plen = 0, pdata = None, enabled = 0, maxsize = 255):
         if not ptype:
             ptype = self.rTYPE
         assert ptype == self.rTYPE
@@ -927,10 +939,10 @@ where:
             #used to return time.strftime("%a, %d %b %Y %H:%M:%S +0000",createddt)
             hist[createddt] = passwd
         return dict(
-            enable=self.enabled
-            , maxsize=self.maxsize
-            , currentsize=len(self.history)
-            , history=hist
+            enable = self.enabled
+            , maxsize = self.maxsize
+            , currentsize = len(self.history)
+            , history = hist
             )
 
     def set(self, value):
@@ -983,21 +995,21 @@ where:
     UNUSED = 0x01ff
 
     def __init__(self
-                 , ptype=None
-                 , plen=0
-                 , pdata=None
-                 , ttllen=14
-                 , minlow=2
-                 , minup=2
-                 , mindig=2
-                 , minsym=2
-                 , uselowercase=True
-                 , useuppercase=True
-                 , usedigits=True
-                 , usesymbols=True
-                 , usehex=False
-                 , useeasy=False
-                 , makepron=False
+                 , ptype = None
+                 , plen = 0
+                 , pdata = None
+                 , ttllen = 14
+                 , minlow = 2
+                 , minup = 2
+                 , mindig = 2
+                 , minsym = 2
+                 , uselowercase = True
+                 , useuppercase = True
+                 , usedigits = True
+                 , usesymbols = True
+                 , usehex = False
+                 , useeasy = False
+                 , makepron = False
                  ):
         if not ptype:
             ptype = self.rTYPE
@@ -1047,31 +1059,31 @@ where:
         if flags & self.USELOWERCASE:
             self.uselowercase = True
         else:
-        	self.uselowercase = False
+            self.uselowercase = False
         if flags & self.USEUPPERCASE:
-        	self.useuppercase = True
+            self.useuppercase = True
         else:
-        	self.useuppercase = False
+            self.useuppercase = False
         if flags & self.USEDIGITS:
-        	self.usedigits = True
+            self.usedigits = True
         else:
-        	self.usedigits = False
+            self.usedigits = False
         if flags & self.USESYMBOLS:
-        	self.usesymbols = True
+            self.usesymbols = True
         else:
-        	self.usesymbols = False
+            self.usesymbols = False
         if flags & self.USEHEXDIGITS:
-        	self.usehex = True
+            self.usehex = True
         else:
-        	self.usehex = False
+            self.usehex = False
         if flags & self.USEEASYVERSION:
-        	self.useeasy = True
+            self.useeasy = True
         else:
-        	self.useeasy = False
+            self.useeasy = False
         if flags & self.MAKEPRONOUNCEABLE:
-        	self.makepron = True
+            self.makepron = True
         else:
-        	self.makepron = False
+            self.makepron = False
         psafe_logger.debug(str(self))
 
     def __repr__(self):
@@ -1095,18 +1107,18 @@ where:
 
     def get(self):
         return dict(
-            UseLower=self.uselowercase
-            , UseUpper=self.useuppercase
-            , UseDigits=self.usedigits
-            , UseSymbols=self.usesymbols
-            , UseHex=self.usehex
-            , UseEasy=self.useeasy
-            , MakePronounceable=self.makepron
-            , TotalLen=self.ttllen
-            , MinLower=self.minlow
-            , MinUpper=self.minup
-            , MinDigits=self.mindig
-            , MinSymbols=self.minsym
+            UseLower = self.uselowercase
+            , UseUpper = self.useuppercase
+            , UseDigits = self.usedigits
+            , UseSymbols = self.usesymbols
+            , UseHex = self.usehex
+            , UseEasy = self.useeasy
+            , MakePronounceable = self.makepron
+            , TotalLen = self.ttllen
+            , MinLower = self.minlow
+            , MinUpper = self.minup
+            , MinDigits = self.mindig
+            , MinSymbols = self.minsym
        )
 
     def set(self, value):
@@ -1145,7 +1157,7 @@ this field not being set.
     rTYPE = 0x11
     rNAME = 'PasswordExpiryInterval'
 
-    def __init__(self, ptype=None, plen=4, pdata=None, ttl=0):
+    def __init__(self, ptype = None, plen = 4, pdata = None, ttl = 0):
         if not ptype:
             ptype = self.rTYPE
         assert ptype == self.rTYPE
@@ -1175,6 +1187,100 @@ this field not being set.
         #psafe_logger.debug("Serial to %s data %s"%(repr(ret),repr(self.data)))
         return ret
 
+class RunCommandRecordProp(RecordProp):
+    """Record's URL
+    runCommand    string
+
+    """
+    rTYPE = 0x12
+    rNAME = 'RunCommand'
+
+    def __init__(self, ptype = None, plen = 0, pdata = None):
+        if not ptype:
+            ptype = self.rTYPE
+        assert ptype == self.rTYPE
+        if not pdata:
+            self.runCommand = ''
+        else:
+            RecordProp.__init__(self, ptype, plen, pdata)
+
+    def parse(self):
+        self.runCommand = self.data[:self.len]
+
+    def __repr__(self):
+        return 'RunCommand' + RecordProp.__repr__(self)
+
+    def __str__(self):
+        return self.rNAME + "=" + repr(self.runCommand)
+
+    def get(self):
+        return self.runCommand
+
+    def set(self, value):
+        self.runCommand = str(value)
+
+    def serial(self):
+        #psafe_logger.debug("Serial to %s data %s"%(repr(self.url),repr(self.data)))
+        return self.runCommand
+
+class DoubleClickActionRecordProp(RecordProp):
+    """ Double click action 
+A two byte field contain the value of the Double-Click Action 'preference 
+390    value' (0xff means use the current Application default):
+391    Current 'preference values' are:
+392        CopyPassword           0
+393        ViewEdit               1
+394        AutoType               2
+395        Browse                 3
+396        CopyNotes              4
+397        CopyUsername           5
+398        CopyPasswordMinimize   6
+399        BrowsePlus             7
+
+
+    """
+    rTYPE = 0x13
+    rNAME = 'DoubleClickAction'
+
+    COPYPASSWORD = 0x00
+    VIEWEDIT = 0x01
+    AUTOTYPE = 0x02
+    BROWSE = 0x03
+    COPYNOTES = 0x04
+    COPYUSERNAME = 0x05
+    COPYPASSWORDMIN = 0x06
+    BROWSEPLUS = 0x07
+    DEFAULT = 0xff
+    def __init__(self, ptype = None, plen = 4, pdata = None, action = DEFAULT):
+        if not ptype:
+            ptype = self.rTYPE
+        assert ptype == self.rTYPE
+        if not pdata:
+            self.action = action
+        else:
+            RecordProp.__init__(self, ptype, plen, pdata)
+
+    def parse(self):
+        self.mydata = self.data[:self.len]
+        self.action = int(unpack('=l', self.mydata)[0])
+
+    def __repr__(self):
+        return self.rNAME + RecordProp.__repr__(self)
+
+    def __str__(self):
+        return self.rNAME + "=" + repr(self.action)
+
+    def get(self):
+        return self.action
+
+    def set(self, value):
+        self.action = int(value)
+
+    def serial(self):
+        ret = pack('=l', self.action)
+        #psafe_logger.debug("Serial to %s data %s"%(repr(ret),repr(self.data)))
+        return ret
+
 class EOERecordProp(RecordProp):
     """End of entry
 
@@ -1187,11 +1293,11 @@ class EOERecordProp(RecordProp):
 'EOE'
 >>> x.serial()
 '\x00\x00\x00\x00\xff\xb5\xce\xd9 =\xe99\x14\xc1.\xfe'
-	"""
+    """
     rTYPE = 0xff
     rNAME = 'EOE'
 
-    def __init__(self, ptype=None, plen=0, pdata=None):
+    def __init__(self, ptype = None, plen = 0, pdata = None):
         if not ptype:
             ptype = self.rTYPE
         assert ptype == self.rTYPE
@@ -1222,29 +1328,10 @@ def parsedatetime(data):
 def makedatetime(dt):
     return pack('=i', calendar.timegm(dt))
 
-RecordPropTypes = {
-    0x01:UUIDRecordProp
-    , 0x02:GroupRecordProp
-    , 0x03:TitleRecordProp
-    , 0x04:UsernameRecordProp
-    , 0x05:NotesRecordProp
-    , 0x06:PasswordRecordProp
-    , 0x07:CreationTimeRecordProp
-    , 0x08:ModTimeRecordProp
-    , 0x09:LastAccessTimeRecordProp
-    , 0x0a:PasswordExpiryTimeRecordProp
-    , 0x0c:LastModificationTimeRecordProp
-    , 0x0d:URLRecordProp
-    , 0x0e:AutotypeRecordProp
-    , 0x0f:PasswordHistoryRecordProp
-    , 0x10:PasswordPolicyRecordProp
-    , 0x11:PasswordExpiryIntervalRecordProp
-    , 0xff:EOERecordProp
-}
 def Create_Prop(fetchblock_f):
     """Returns a record properity. Uses fetchblock_f to read a 16 byte chunk of data
-	fetchblock_f(number of blocks)
-	"""
+    fetchblock_f(number of blocks)
+    """
     psafe_logger.debug('Create_Prop')
     firstblock = fetchblock_f(1)
     (rlen, rTYPE) = unpack('=lc', firstblock[:5])
@@ -1266,10 +1353,9 @@ def Create_Prop(fetchblock_f):
             return RecordProp(rTYPE, rlen, data)
     else:
         # Unknown header
-        psafe_logger.info('Unknown header type %s' % repr(rTYPE))
+        psafe_logger.debug('Unknown header type %s' % repr(rTYPE))
         return RecordProp(rTYPE, rlen, data)
 
 if __name__ == "__main__":
     import doctest
     doctest.testmod()
-
