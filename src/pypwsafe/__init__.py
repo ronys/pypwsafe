@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #===============================================================================
-# SYMANTEC:     Copyright © 2009-2011 Symantec Corporation. All rights reserved.
+# SYMANTEC:     Copyright (C) 2009-2011 Symantec Corporation. All rights reserved.
 #
 # This file is part of PyPWSafe.
 #
@@ -23,11 +23,11 @@
 """
 # Lets this lib work from both 2.4 and above
 try:
-        from hashlib import sha256_func #@UnresolvedImport
-        from hashlib import sha256_mod #@UnresolvedImport
+    from hashlib import sha256_func #@UnresolvedImport
+    from hashlib import sha256_mod #@UnresolvedImport
 except:
-        import Crypto.Hash.SHA256 as sha256_mod #@UnresolvedImport
-        from Crypto.Hash.SHA256 import new as sha256_func #@UnresolvedImport
+    import Crypto.Hash.SHA256 as sha256_mod #@UnresolvedImport @Reimport
+    from Crypto.Hash.SHA256 import new as sha256_func #@UnresolvedImport @Reimport
 from mcrypt import MCRYPT #@UnresolvedImport
 from hmac import new as HMAC
 from PWSafeV3Headers import *
@@ -83,7 +83,7 @@ class PWSafe3(object):
 	prefs
 
 	"""
-    def __init__(self, filename, password, mode="RW"):
+    def __init__(self, filename, password, mode = "RW"):
         log.debug('Creating psafe %s' % repr(filename))
         psafe_exists = os.access(filename, os.F_OK)
         psafe_canwrite = os.access(filename, os.W_OK)
@@ -291,9 +291,9 @@ class PWSafe3(object):
             req = Record(self._fetch_block)
             self.records.append(req)
 
-        if self.current_hmac(cached=True) != self.hmac:
+        if self.current_hmac(cached = True) != self.hmac:
             log.error('Invalid HMAC Calculated: %s File: %s' % (repr(self.current_hmac()), repr(self.hmac)))
-            #raise InvalidHMACError, "Calculated: %s File: %s"%(repr(self.current_hmac()),repr(self.hmac))
+            raise InvalidHMACError, "Calculated: %s File: %s" % (repr(self.current_hmac()), repr(self.hmac))
 
     def __str__(self):
         ret = ''
@@ -301,7 +301,7 @@ class PWSafe3(object):
             ret += str(i) + "\n\n"
         return ret
 
-    def _fetch_block(self, num_blocks=1):
+    def _fetch_block(self, num_blocks = 1):
         """Returns one or more 16-byte block of data. Raises EOFError when there is no more data. """
         assert num_blocks > 0
         bytes = num_blocks * 16
@@ -333,7 +333,7 @@ class PWSafe3(object):
         tw.init(self.enckey, self.iv)
         self.cryptdata = tw.encrypt(self.fulldata)
 
-    def current_hmac(self, cached=False):
+    def current_hmac(self, cached = False):
         """Returns the current hmac of self.fulldata"""
         data = ''
         for i in self.headers:
@@ -391,7 +391,7 @@ class PWSafe3(object):
                 , nrwrapper('Notes')
             )
 
-    def getpass(self, uuid=None):
+    def getpass(self, uuid = None):
         """Returns the password of the item with the given UUID"""
         for record in self.records:
             if record['UUID'] == uuid:
