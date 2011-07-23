@@ -34,12 +34,12 @@ psafe_logger.debug('initing')
 
 class Record(object):
     """Represents a psafe3 record
-	Container item: Name of properity
-	Attrs
-	records		[RecordProp]		List of properities
-	lk		{TypeName:RecordProp}
+    Container item: Name of properity
+    Attrs
+    records        [RecordProp]        List of properities
+    lk        {TypeName:RecordProp}
 
-	"""
+    """
 
     def __init__(self, fetchblock_f = None):
         psafe_logger.debug('Creating record object')
@@ -123,16 +123,16 @@ class Record(object):
             ret += r.serialiaze()
         return ret
 
-# 	Record Prop
+#     Record Prop
 class RecordProp(object):
     """A single properity of a psafe3 record. This represents an unknown type or is overridden by records of a known type.
-	rTYPE		int		Properity type. May be null.
-	rNAME		string		Code name of properity type.
-	type		int		Prop type.
-	len		int		Length, in bytes, of data
-	raw_data	string		Record data including padding and headers
-	data		string		Record data minus headers and padding
-	"""
+    rTYPE        int        Properity type. May be null.
+    rNAME        string        Code name of properity type.
+    type        int        Prop type.
+    len        int        Length, in bytes, of data
+    raw_data    string        Record data including padding and headers
+    data        string        Record data minus headers and padding
+    """
     rTYPE = None
     rNAME = "Unknown"
 
@@ -202,7 +202,7 @@ class RecordProp(object):
 
 class UUIDRecordProp(RecordProp):
     """Record's unique id
-	uuid		uuid.UUID
+    uuid        uuid.UUID
 >>> x=UUIDRecordProp(0x1,16,'\x10\x00\x00\x00\x01\xfa@\xbd\x1f \xf5B\xf5\x88v#\xe4\x08\xae\x8a\xa1@\x16[\xfb\x8c\x87mq\xf70[')
 >>> repr(x)
 "UUIDRecordProp(0x1,16,'\\x10\\x00\\x00\\x00\\x01\\xfa@\\xbd\\x1f \\xf5B\\xf5\\x88v#\\xe4\\x08\\xae\\x8a\\xa1@\\x16[\\xfb\\x8c\\x87mq\\xf70[')"
@@ -210,7 +210,7 @@ class UUIDRecordProp(RecordProp):
 'UUID=fa40bd1f-20f5-42f5-8876-23e408ae8aa1'
 >>> x.serial()
 '\xfa@\xbd\x1f \xf5B\xf5\x88v#\xe4\x08\xae\x8a\xa1'
-	"""
+    """
     rTYPE = 0x01
     rNAME = 'UUID'
     def __init__(self, ptype = None, plen = 16, pdata = None):
@@ -248,8 +248,8 @@ class UUIDRecordProp(RecordProp):
 
 class GroupRecordProp(RecordProp):
     """Record's Group
-	group_str	string		Raw group string
-	group		[string]	List of the groups. First entry is the top level group.
+    group_str    string        Raw group string
+    group        [string]    List of the groups. First entry is the top level group.
 >>> x=GroupRecordProp(0x2,7,'\x07\x00\x00\x00\x02Group 0\x11"\xf1\x84')
 >>> str(x)
 "Group: 'Group 0'"
@@ -259,7 +259,7 @@ class GroupRecordProp(RecordProp):
 ['Group 0']
 >>> x.serial()
 '\x07\x00\x00\x00\x02Group 0'
-	"""
+    """
     rTYPE = 0x02
     rNAME = 'Group'
 
@@ -295,7 +295,7 @@ class GroupRecordProp(RecordProp):
 
 class TitleRecordProp(RecordProp):
     """Record's title
-	title		string		Title
+    title        string        Title
 >>> x=TitleRecordProp(0x3,7,'\x07\x00\x00\x00\x03Title 0\xd5\xed\xf5l')
 >>> str(x)
 "Title='Title 0'"
@@ -306,7 +306,7 @@ class TitleRecordProp(RecordProp):
 >>> x.get()
 'Title 0'
 
-	"""
+    """
     rTYPE = 0x03
     rNAME = 'Title'
 
@@ -341,7 +341,7 @@ class TitleRecordProp(RecordProp):
 
 class UsernameRecordProp(RecordProp):
     """Record's username
-	username	string		...
+    username    string        ...
 >>> x=UsernameRecordProp(0x4,9,'\t\x00\x00\x00\x04username0\x06\xfb')
 >>> str(x)
 "Username='username0'"
@@ -351,7 +351,7 @@ class UsernameRecordProp(RecordProp):
 'username0'
 >>> x.serial()
 'username0'
-	"""
+    """
     rTYPE = 0x04
     rNAME = 'Username'
 
@@ -386,7 +386,7 @@ class UsernameRecordProp(RecordProp):
 
 class NotesRecordProp(RecordProp):
     """Record notes
-	notes		string		...
+    notes        string        ...
 >>> x=NotesRecordProp(0x5,10,'\n\x00\x00\x00\x05more notes\x8c')
 >>> str(x)
 "Notes='more notes'"
@@ -397,7 +397,7 @@ class NotesRecordProp(RecordProp):
 >>> x.serial()
 'more notes'
 
-	"""
+    """
     rTYPE = 0x05
     rNAME = 'Notes'
 
@@ -431,7 +431,7 @@ class NotesRecordProp(RecordProp):
 
 class PasswordRecordProp(RecordProp):
     """Record's  password
-	password	string		...
+    password    string        ...
 >>> x=PasswordRecordProp(0x6,9,'\t\x00\x00\x00\x06password0d\xe7')
 >>> str(x)
 "Password='password0'"
@@ -441,7 +441,7 @@ class PasswordRecordProp(RecordProp):
 'password0'
 >>> x.serial()
 'password0'
-	"""
+    """
     rTYPE = 0x06
     rNAME = 'Password'
 
@@ -1047,31 +1047,31 @@ where:
         if flags & self.USELOWERCASE:
             self.uselowercase = True
         else:
-        	self.uselowercase = False
+            self.uselowercase = False
         if flags & self.USEUPPERCASE:
-        	self.useuppercase = True
+            self.useuppercase = True
         else:
-        	self.useuppercase = False
+            self.useuppercase = False
         if flags & self.USEDIGITS:
-        	self.usedigits = True
+            self.usedigits = True
         else:
-        	self.usedigits = False
+            self.usedigits = False
         if flags & self.USESYMBOLS:
-        	self.usesymbols = True
+            self.usesymbols = True
         else:
-        	self.usesymbols = False
+            self.usesymbols = False
         if flags & self.USEHEXDIGITS:
-        	self.usehex = True
+            self.usehex = True
         else:
-        	self.usehex = False
+            self.usehex = False
         if flags & self.USEEASYVERSION:
-        	self.useeasy = True
+            self.useeasy = True
         else:
-        	self.useeasy = False
+            self.useeasy = False
         if flags & self.MAKEPRONOUNCEABLE:
-        	self.makepron = True
+            self.makepron = True
         else:
-        	self.makepron = False
+            self.makepron = False
         psafe_logger.debug(str(self))
 
     def __repr__(self):
@@ -1187,7 +1187,7 @@ class EOERecordProp(RecordProp):
 'EOE'
 >>> x.serial()
 '\x00\x00\x00\x00\xff\xb5\xce\xd9 =\xe99\x14\xc1.\xfe'
-	"""
+    """
     rTYPE = 0xff
     rNAME = 'EOE'
 
@@ -1223,28 +1223,28 @@ def makedatetime(dt):
     return pack('=i', calendar.timegm(dt))
 
 RecordPropTypes = {
-    0x01:UUIDRecordProp
-    , 0x02:GroupRecordProp
-    , 0x03:TitleRecordProp
-    , 0x04:UsernameRecordProp
-    , 0x05:NotesRecordProp
-    , 0x06:PasswordRecordProp
-    , 0x07:CreationTimeRecordProp
-    , 0x08:ModTimeRecordProp
-    , 0x09:LastAccessTimeRecordProp
-    , 0x0a:PasswordExpiryTimeRecordProp
-    , 0x0c:LastModificationTimeRecordProp
-    , 0x0d:URLRecordProp
-    , 0x0e:AutotypeRecordProp
-    , 0x0f:PasswordHistoryRecordProp
-    , 0x10:PasswordPolicyRecordProp
-    , 0x11:PasswordExpiryIntervalRecordProp
-    , 0xff:EOERecordProp
+    0x01:UUIDRecordProp,
+    0x02:GroupRecordProp,
+    0x03:TitleRecordProp,
+    0x04:UsernameRecordProp,
+    0x05:NotesRecordProp,
+    0x06:PasswordRecordProp,
+    0x07:CreationTimeRecordProp,
+    0x08:ModTimeRecordProp,
+    0x09:LastAccessTimeRecordProp,
+    0x0a:PasswordExpiryTimeRecordProp,
+    0x0c:LastModificationTimeRecordProp,
+    0x0d:URLRecordProp,
+    0x0e:AutotypeRecordProp,
+    0x0f:PasswordHistoryRecordProp,
+    0x10:PasswordPolicyRecordProp,
+    0x11:PasswordExpiryIntervalRecordProp,
+    0xff:EOERecordProp,
 }
 def Create_Prop(fetchblock_f):
     """Returns a record properity. Uses fetchblock_f to read a 16 byte chunk of data
-	fetchblock_f(number of blocks)
-	"""
+    fetchblock_f(number of blocks)
+    """
     psafe_logger.debug('Create_Prop')
     firstblock = fetchblock_f(1)
     (rlen, rTYPE) = unpack('=lc', firstblock[:5])
