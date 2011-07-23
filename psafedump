@@ -1,4 +1,20 @@
 #!/usr/bin/python
+#===============================================================================
+# This file is part of PyPWSafe.
+#
+#    PyPWSafe is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 2 of the License, or
+#    (at your option) any later version.
+#
+#    PyPWSafe is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with PyPWSafe.  If not, see http://www.gnu.org/licenses/old-licenses/gpl-2.0.html 
+#===============================================================================
 ''' A CLI interface for PyPWSafe. 
 
 Allow users to view Password Safe files. 
@@ -58,8 +74,25 @@ def show_entry(entry, opts):
 def display_xml(entries, opts):
     raise NotImplementedError
 
+from StringIO import StringIO
+from csv import DictWriter
+import datetime
 def display_csv(entries, opts):
-    ret = ''
+    csvFields = [
+               'Group',
+               'Title',
+               'Username',
+               'Password',
+               'UUID',
+               'Note',
+               'Created',
+               'Modified',
+               'Last Access',
+               'Expires',
+               'URL',
+               'AutoType',
+               'History',
+               ]    
     by_groups = {}
     for entry in entries:
         group = '.'.join(entry['Group'])
@@ -68,15 +101,38 @@ def display_csv(entries, opts):
         by_groups[group].append(entry)
     groups = by_groups.keys()
     groups.sort()
+    csvString = StringIO()
+    c = DictWriter(csvString, csvFields)
+    c.writerow(dict(zip(csvFields, csvFields)))
     for group in groups:
         by_groups[group].sort(lambda a, b: cmp(a['Title'] + a['Username'], b['Title'] + b['Username']))
         for entry in by_groups[group]:
-            ret += "%r, " % group
-            ret += """%(Title)r, %(Username)r, %(Password)r\n""" % entry
-    return ret
+            policy = entry['PasswordPolicy']
+            history = []
+            # May want to add in dt at some point
+            for dt, pwd in entry['PasswordHistory']['history'].items():
+                history.append(pwd)
+            c.writerow({
+                       'Group':'.'.join(entry['Group']),
+                       'Title':entry['Title'],
+                       'Username':entry['Username'],
+                       'Password':entry['Password'],
+                       'UUID':entry['UUID'],
+                       'Note':entry['Notes'],
+                       'Created':datetime.datetime(*entry['ctime'][:6]).isoformat(),
+                       'Modified':datetime.datetime(*entry['mtime'][:6]).isoformat(),
+                       'Last Access':datetime.datetime(*entry['LastAccess'][:6]).isoformat(),
+                       'Expires':datetime.datetime(*entry['PasswordExpiry'][:6]).isoformat(),
+                       'URL':entry['URL'],
+                       'AutoType':entry['Autotype'],
+                       # TODO: Add in support for creating new rows for each history entry
+                       'History':';'.join(history),
+                        })            
+    return csvString.getvalue()
 
 def display_display(entries, opts):
     ret = ''
+    # Group by group
     by_groups = {}
     for entry in entries:
         group = '.'.join(entry['Group'])
@@ -93,6 +149,9 @@ def display_display(entries, opts):
             ret += """    == %(Title)r ==
         Username: %(Username)r
         Password: %(Password)r
+        UUID: %(UUID)r
+        URL: %(URL)r
+        AutoType: %(Autotype)r
 """ % entry
     return ret
         
