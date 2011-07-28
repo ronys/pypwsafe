@@ -7,7 +7,6 @@ There are a few known issues:
 1) Some of the more recent record properties aren't supported
 2) Lack of documentation
 3) Unit tests are out-of-date
-4) Need to add an install script
 
 Deps: 
 1) python-mcrypt
