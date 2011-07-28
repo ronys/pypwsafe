@@ -1035,7 +1035,7 @@ where:
         if self.uselowercase:
             flags = flags | self.USELOWERCASE
         if self.useuppercase:
-            flags = flags | self.USELOWERCASE
+            flags = flags | self.USEUPPERCASE
         if self.usedigits:
             flags = flags | self.USEDIGITS
         if self.usesymbols:
