@@ -160,7 +160,7 @@ class RecordProp(object):
         psafe_logger.debug('Created psafe record prop with rTYPE of %s. Class %s', repr(self.rTYPE), repr(self.__class__))
         self.parse()
         if self.rNAME == "Unknown":
-            psafe_logger.warn('Created psafe record prop of unknown type. rType: %s rLen: %s Data: %s Raw: %s', repr(ptype), repr(plen), repr(self.data), repr(self.raw_data))
+            psafe_logger.debug('Created psafe record prop of unknown type. rType: %s rLen: %s Data: %s Raw: %s', repr(ptype), repr(plen), repr(self.data), repr(self.raw_data))
         else:
             psafe_logger.debug('Created psafe record prop of known type. rType: %s rLen: %s Data: %s Raw: %s', repr(ptype), repr(plen), repr(self.data), repr(self.raw_data))
 
@@ -1035,7 +1035,7 @@ where:
         if self.uselowercase:
             flags = flags | self.USELOWERCASE
         if self.useuppercase:
-            flags = flags | self.USELOWERCASE
+            flags = flags | self.USEUPPERCASE
         if self.usedigits:
             flags = flags | self.USEDIGITS
         if self.usesymbols:
