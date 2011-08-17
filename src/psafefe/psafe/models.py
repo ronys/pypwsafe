@@ -15,7 +15,17 @@
 #    You should have received a copy of the GNU General Public License
 #    along with PyPWSafe.  If not, see http://www.gnu.org/licenses/old-licenses/gpl-2.0.html 
 #===============================================================================
-
 from django.db import models
+from uuid import uuid4
 
 # Create your models here.
+class PasswordSafe(models.Model):
+    uuid = models.CharField(
+                            null = False,
+                            default = str(uuid4()),
+                            length = 36,
+                            verbose_name = "UUID",
+                            help_text = "Password Safe GUID",
+                            editable = False,
+                            )
+    
