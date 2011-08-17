@@ -15,14 +15,17 @@
 #    You should have received a copy of the GNU General Public License
 #    along with PyPWSafe.  If not, see http://www.gnu.org/licenses/old-licenses/gpl-2.0.html 
 #===============================================================================
-
-from django.conf.urls.defaults import patterns, include, url
+from django.conf.urls.defaults import patterns, include, url #@UnresolvedImport
 
 # Uncomment the next two lines to enable the admin:
-# from django.contrib import admin
-# admin.autodiscover()
+from django.contrib import admin #@UnresolvedImport
+admin.autodiscover()
 
 urlpatterns = patterns('',
+    # XML-RPC and JSON RPC Access
+    (r'^RPC2$', 'rpc4django.views.serve_rpc_request'),
+    # Psafe site
+    (r'^psafe(?:/)?', include('psafefe.psafe.urls')),
     # Account junk
     (r'^accounts/login(?:/)?$', 'django.contrib.auth.views.login', dict(redirect_field_name = '/index.html')),
     (r'^accounts/logout(?:/)?$', 'django.contrib.auth.views.logout_then_login'),
