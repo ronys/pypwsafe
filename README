@@ -15,7 +15,7 @@ Deps:
 Install Instructions
 1) Install libmcrypt and it's dev package: 
 	yum install libmcrypt-devel libmcrypt
-	These packages are needed by 
+	These packages are needed by the installer for python-mcrypt
 2) Use Pip or easy install to install python-mcrypt
 3) Run the setup script
 	python setup.py install
