@@ -15,3 +15,13 @@
 #    You should have received a copy of the GNU General Public License
 #    along with PyPWSafe.  If not, see http://www.gnu.org/licenses/old-licenses/gpl-2.0.html 
 #===============================================================================
+'''
+Created on Aug 16, 2011
+
+@author: gpmidi
+'''
+from celery.task import task #@UnresolvedImport
+
+@task
+def Test():
+    return "Hai"

@@ -132,10 +132,8 @@ INSTALLED_APPS = (
     'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    # Uncomment the next line to enable the admin:
-    'django.contrib.admin',
-    # Uncomment the next line to enable admin documentation:
-    'django.contrib.admindocs',
+    'django.contrib.humanize',
+    'django.contrib.comments',
     'dajaxice',
     'dajax',
     'djcelery',
@@ -165,3 +163,13 @@ LOGGING = {
         },
     }
 }
+
+# Celery
+CELERY_RESULT_BACKEND = "amqp"
+BROKER_HOST = "mem0.nh.gpmidi.net"
+BROKER_PORT = 5672
+BROKER_USER = "gpdev"
+BROKER_PASSWORD = "gpdev"
+BROKER_VHOST = "gpdev"
+CELERY_RESULT_PERSISTENT = False
+
