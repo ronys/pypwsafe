@@ -38,4 +38,3 @@ class EntryDoesntExistError(NoPermissionError):
     """ The requested entry doesn't exist or the user doens't have 
     permission to access it. """
     
-    
