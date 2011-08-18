@@ -391,6 +391,10 @@ class PWSafe3(object):
                 , nrwrapper('Notes')
             )
 
+    def getEntries(self):
+        """ Return a list of all records """
+        return self.records
+    
     def getpass(self, uuid = None):
         """Returns the password of the item with the given UUID"""
         for record in self.records:
@@ -416,7 +420,40 @@ class PWSafe3(object):
         for hdr in self.headers:
             if type(hdr) == VersionHeader:
                 return hdr.version
-
+            
+    def getTimeStampOfLastSafe(self):
+        for hdr in self.headers:
+            if type(hdr) == TimeStampOfLastSaveHeader:
+                return hdr.lastsave
+    
+    def getLastSaveApp(self):
+        for hdr in self.headers:
+            if type(hdr) == LastSaveAppHeader:
+                return hdr.lastSafeApp
+            
+    def getLastSaveUser(self):
+        for hdr in self.headers:
+            if type(hdr) == LastSaveUserHeader:
+                return hdr.username
+    
+    def getLastSaveHost(self):
+        for hdr in self.headers:
+            if type(hdr) == LastSaveHostHeader:
+                return hdr.hostname
+                    
+    def getDbName(self):
+        """ Returns the name of the db according to the psafe headers """
+        for hdr in self.headers:
+            if type(hdr) == DBNameHeader:
+                return hdr.dbName
+            
+    def getDbDesc(self):
+        """ Returns the description of the db according to the psafe headers """
+        for hdr in self.headers:
+            if type(hdr) == DBDescHeader:
+                return hdr.dbDesc
+           
+        
 # Misc helper functions
 def ispsafe3(filename):
     """Return True if the file appears to be a psafe v3 file. Does not do in-depth checks. """

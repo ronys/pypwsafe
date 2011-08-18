@@ -28,6 +28,7 @@ import logging, logging.config
 from errors import *
 import os
 from uuid import UUID, uuid4
+import datetime
 #logging.config.fileConfig('/etc/mss/psafe_log.conf')
 psafe_logger = logging.getLogger("psafe.lib.record")
 psafe_logger.debug('initing')
@@ -122,7 +123,64 @@ class Record(object):
         for r in self.records:
             ret += r.serialiaze()
         return ret
-
+    
+    # Accessor methods
+    def getGroup(self):
+        return self['Group']
+    
+    def getTitle(self):
+        return self['Title']
+    
+    def getUsername(self):
+        return self['Username']
+    
+    def getPassword(self):
+        return self['Password']
+    
+    def getUUID(self):
+        return self['UUID']
+    
+    def getNote(self):
+        return self['Note']
+    
+    def getCreated(self):
+        return datetime.datetime(*self['ctime'][:6])
+    
+    def getPasswordModified(self):
+        return datetime.datetime(*self['mtime'][:6])
+    
+    def getEntryModified(self):
+        return datetime.datetime(*self['LastModification'][:6])
+    
+    def getLastAccess(self):
+        return datetime.datetime(*self['LastAccess'][:6])
+    
+    def getExpires(self):
+        return datetime.datetime(*self['PasswordExpiry'][:6])
+    
+    def getURL(self):
+        return self['URL']
+    
+    def getAutoType(self):
+        return self['AutoType']
+    
+    def getHistory(self):
+        ret = []
+        for tm, passwd in self['History']:
+            ret.append(dict(
+                            password = passwd,
+                            saved = datetime.datetime(*tm[:6]),
+                            ))
+        ret.sort(lambda a, b: cmp(a['saved'], b['saved']))
+        return ret
+    
+    def getRunCommand(self):
+        return self['RunCommand']
+    
+    def getEmail(self):
+        # FIXME: Need to implement
+        return None
+    
 RecordPropTypes = {}
 
 class _RecordPropType(type):
