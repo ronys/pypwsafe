@@ -36,6 +36,7 @@ from errors import *
 import os, os.path
 from struct import pack, unpack
 import logging, logging.config
+import socket
 
 log = logging.getLogger("psafe.lib.init")
 log.debug('initing')
@@ -85,6 +86,7 @@ class PWSafe3(object):
 	"""
     def __init__(self, filename, password, mode = "RW"):
         log.debug('Creating psafe %s' % repr(filename))
+        self.locked = False
         psafe_exists = os.access(filename, os.F_OK)
         psafe_canwrite = os.access(filename, os.W_OK)
         psafe_canwritebase = os.access(os.path.dirname(filename), os.W_OK)
@@ -414,46 +416,162 @@ class PWSafe3(object):
             if type(hdr) == UUIDHeader:
                 return hdr.uuid
         return uuid4()
+    
+    def setUUID(self, uuid = None):        
+        for hdr in self.headers:
+            if type(hdr) == UUIDHeader:
+                hdr.uuid = str(uuid)
+                return
+        if uuid:
+            self.headers.append(UUIDHeader(uuid = uuid))
+        else:
+            self.headers.append(UUIDHeader())
 
     def getVersion(self):
         """Return the safe's version"""
         for hdr in self.headers:
             if type(hdr) == VersionHeader:
                 return hdr.version
-            
-    def getTimeStampOfLastSafe(self):
+    
+    def setVersion(self, version = None):
+        """Return the safe's version"""
+        for hdr in self.headers:
+            if type(hdr) == VersionHeader:
+                hdr.version = version
+                return
+        if version:
+            self.headers.append(VersionHeader(version = version))
+        else:
+            self.headers.append(VersionHeader())
+        
+    def getTimeStampOfLastSave(self):
         for hdr in self.headers:
             if type(hdr) == TimeStampOfLastSaveHeader:
                 return hdr.lastsave
     
+    def setTimeStampOfLastSave(self, timestamp):
+        for hdr in self.headers:
+            if type(hdr) == TimeStampOfLastSaveHeader:
+                hdr.lastsave = timestamp.timetuple()
+                return
+        self.headers.append(TimeStampOfLastSaveHeader(lastsave = timestamp.timetuple()))
+            
     def getLastSaveApp(self):
         for hdr in self.headers:
             if type(hdr) == LastSaveAppHeader:
                 return hdr.lastSafeApp
+    
+    def setLastSaveApp(self, app):
+        for hdr in self.headers:
+            if type(hdr) == LastSaveAppHeader:
+                hdr.lastSafeApp = app
+                return
+        self.headers.append(LastSaveAppHeader(lastSaveApp = app))
             
     def getLastSaveUser(self):
         for hdr in self.headers:
             if type(hdr) == LastSaveUserHeader:
                 return hdr.username
     
+    def setLastSaveUser(self, username):
+        for hdr in self.headers:
+            if type(hdr) == LastSaveUserHeader:
+                hdr.username = username
+                return
+        self.headers.append(LastSaveUserHeader(username = username))
+    
     def getLastSaveHost(self):
         for hdr in self.headers:
             if type(hdr) == LastSaveHostHeader:
                 return hdr.hostname
-                    
+    
+    def setLastSaveHost(self, hostname):
+        for hdr in self.headers:
+            if type(hdr) == LastSaveHostHeader:
+                hdr.hostname = hostname
+                return
+        self.headers.append(LastSaveHostHeader(hostname = hostname))
+                
     def getDbName(self):
         """ Returns the name of the db according to the psafe headers """
         for hdr in self.headers:
             if type(hdr) == DBNameHeader:
                 return hdr.dbName
+    
+    def setDbName(self, dbName):
+        """ Returns the name of the db according to the psafe headers """
+        for hdr in self.headers:
+            if type(hdr) == DBNameHeader:
+                hdr.dbName = dbName
+                return
+        self.headers.append(DBNameHeader(dbName = dbName))
             
     def getDbDesc(self):
         """ Returns the description of the db according to the psafe headers """
         for hdr in self.headers:
             if type(hdr) == DBDescHeader:
                 return hdr.dbDesc
-           
+    
+    def setDbDesc(self, dbDesc):
+        """ Returns the description of the db according to the psafe headers """
+        for hdr in self.headers:
+            if type(hdr) == DBDescHeader:
+                hdr.dbDesc = dbDesc
+                return
+        self.headers.append(DBDescHeader(dbDesc = dbDesc))
+
+    def _get_lock_data(self):
+        pid = os.getpid()
+        host = socket.gethostname()
+        fil = self.filename.replace('.psafe3', '.plk')
+        from pickle import dumps
+        return dumps((pid, host, fil))
         
+    def lock(self):
+        """ Acquire a lock on the DB. Raise an exception on failure """
+        lfile = self.filename.replace('.psafe3', '.plk')
+        # Make sure we don't already hold the lock
+        if self.locked and os.access(lfile, os.R_OK):
+            raise LockAlreadyAcquiredError
+        
+        if os.path.isfile(lfile):
+            # May be a dead pid
+            from pickle import loads
+            f = open(lfile, 'rb')
+            pid, host, fil = loads(f.read())
+            f.close()
+            if host == socket.gethostbyname():
+                try:
+                    os.kill(pid, 0) #@UndefinedVariable
+                    raise AlreadyLockedError, "Other process is alive. Can't override lock. "
+                except:
+                    # Not really locked, remove stale lock
+                    os.remove(lfile)
+                    return self.lock()
+            else:
+                raise AlreadyLockedError, "Lock is on a different host. Can't try to unlock. "
+        
+        self.locked = lfile
+                
+        # Create the lock file with no race conditions
+        # Should generate an OS error if the file already exists 
+        try:
+            fd = os.open(lfile, os.O_CREAT | os.O_EXCL | os.O_RDWR)
+            os.write(fd, self._get_lock_data())
+            os.close(fd)
+        except OSError, e:
+            raise AlreadyLockedError
+        
+    def unlock(self):
+        """ Unlock the DB """
+        if not self.locked:
+            raise NotLockedError, "Not currently locked"
+        try:
+            os.remove(self.locked)
+            self.locked = False
+        except OSError:
+            raise NotLockedError, "Obj reported as locked but no lock file exists"
+                   
 # Misc helper functions
 def ispsafe3(filename):
     """Return True if the file appears to be a psafe v3 file. Does not do in-depth checks. """

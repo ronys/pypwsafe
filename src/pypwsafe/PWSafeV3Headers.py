@@ -174,13 +174,16 @@ DHeader(1,16,'\x10\x00\x00\x00\x01\xbdV\x92{H\xdbL\xec\xbb+\xe90w5\x17\xa2P6b\xe
     """
     TYPE = 0x01
 
-    def __init__(self, htype = None, hlen = 16, raw_data = None):
+    def __init__(self, htype = None, hlen = 16, raw_data = None, uuid = None):
         if not htype:
             htype = self.TYPE
         if raw_data:
             Header.__init__(self, htype, hlen, raw_data)
         else:
-            self.uuid = uuid4()
+            if uuid:
+                self.uuid = uuid
+            else:
+                self.uuid = uuid4()
 
     def parse(self):
         """Parse data"""

@@ -70,3 +70,12 @@ class ConfigItemNotFoundError(PrefrencesHeaderError):
 class UnableToFindADelimitersError(PrefrencesHeaderError):
     """ Couldn't find an unused char to delminate the string"""
 
+class AlreadyLockedError(RuntimeError):
+    """ The psafe in question is already locked. Can't acquire a new lock. """
+
+class LockAlreadyAcquiredError(AlreadyLockedError):
+    """ The psafe in question is already locked by this psafe object. Can't acquire a new lock. """
+    
+class NotLockedError(RuntimeError):
+    """ The psafe in question is not locked. Can't unlock. """
+    
