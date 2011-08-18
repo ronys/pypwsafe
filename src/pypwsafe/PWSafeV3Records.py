@@ -128,42 +128,81 @@ class Record(object):
     def getGroup(self):
         return self['Group']
     
+    def setGroup(self, group):
+        self['Group'] = group
+    
     def getTitle(self):
         return self['Title']
+    
+    def setTitle(self, title):
+        self['Title'] = title
     
     def getUsername(self):
         return self['Username']
     
+    def setUsername(self, username):
+        self['Username'] = username
+    
     def getPassword(self):
         return self['Password']
+    
+    def setPassword(self, password):
+        self['Password'] = password
     
     def getUUID(self):
         return self['UUID']
     
+    def setUUID(self, uuid):
+        self['UUID'] = uuid
+    
     def getNote(self):
         return self['Note']
+    
+    def setNote(self, note):
+        self['Note'] = note
     
     def getCreated(self):
         return datetime.datetime(*self['ctime'][:6])
     
+    def setCreated(self, created):
+        self['ctime'] = created.timetuple()
+        
     def getPasswordModified(self):
         return datetime.datetime(*self['mtime'][:6])
+    
+    def setPasswordModified(self, modified):
+        self['mtime'] = modified.timetuple()
     
     def getEntryModified(self):
         return datetime.datetime(*self['LastModification'][:6])
     
+    def setEntryModified(self, modified):
+        self['LastModification'] = modified.timetuple()
+    
     def getLastAccess(self):
         return datetime.datetime(*self['LastAccess'][:6])
     
+    def setLastAccess(self, access):
+        self['LastAccess'] = access.timetuple()
+        
     def getExpires(self):
         return datetime.datetime(*self['PasswordExpiry'][:6])
     
+    def setExpires(self, expires):
+        self['PasswordExpiry'] = expires.timetuple()
+        
     def getURL(self):
         return self['URL']
+    
+    def setURL(self, url):
+        self['URL'] = url
     
     def getAutoType(self):
         return self['AutoType']
     
+    def setAutoType(self, autotype):
+        self['AutoType'] = autotype
+        
     def getHistory(self):
         ret = []
         for tm, passwd in self['History']:
@@ -174,12 +213,36 @@ class Record(object):
         ret.sort(lambda a, b: cmp(a['saved'], b['saved']))
         return ret
     
+    def _find_hist(self):
+        if self.lk.has_key("History"):
+            return self.lk['History']
+        else:
+            for i in RecordPropTypes.values():
+                if i.rNAME == "History":
+                    return i
+
+    def appendHistory(self, oldpw, dt = datetime.datetime.now()):
+        history = self._find_hist()
+        history.history.append((dt.timetuple(), oldpw))
+        history.maxsize = len(history.history)
+        
+    def setHistory(self, history):
+        history = self._find_hist()
+        history.set(history)
+    
     def getRunCommand(self):
         return self['RunCommand']
+    
+    def setRunCommand(self, cmd):
+        self['RunCommand'] = cmd
     
     def getEmail(self):
         # FIXME: Need to implement
         return None
+    
+    def setEmail(self, email):
+        # FIXME: Need to implement
+        pass
     
 RecordPropTypes = {}
 
