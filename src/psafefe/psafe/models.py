@@ -30,6 +30,10 @@ class PasswordSafeRepo(models.Model):
         abstract = True
         verbose_name = "Password Safe Repo"
         verbose_name_plural = "Password Safe Repos"
+        permissions = (
+                       ('can_sync', 'Can sync all safes in this repo'),
+                       )
+        
         
     name = models.CharField(
                             null = False,
@@ -118,6 +122,9 @@ class PasswordSafe(models.Model):
                            # TODO: Add a filename_md5 or something 
                            # ('filename','repo'),
                            )
+        permissions = (
+                       ('can_sync', 'Can sync individual safes'),
+                       )
         
     uuid = models.CharField(
                             # can't use as PK as two psafes may have the same uuid
