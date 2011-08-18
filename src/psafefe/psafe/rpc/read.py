@@ -20,4 +20,39 @@ Created on Aug 16, 2011
 @author: gpmidi
 '''
 from rpc4django import rpcmethod
+from psafefe.psafe.rpc._errors import *
+from psafefe.psafe.rpc._auth import auth
+from psafefe.psafe.models import *
+
+@rpcmethod(name = 'psafe.read.getEntry', signature = ['string', 'string', 'int'])
+@auth
+def getEntry(username, password, entPK, **kw):
+    """ Return a struct representing the requested entry """
+    try:
+        ent = MemPsafeEntry.objects.get(pk = entPK)
+    except MemPsafeEntry.DoesNotExist:
+        raise EntryDoesntExistError
+    
+    repo = ent.safe.safe.repo
+    if repo.user_can_access(kw['user'], mode = "R"):
+        return ent.todict()
+    
+    # User doesn't have access so it might as well not exist
+    raise EntryDoesntExistError
+
+@rpcmethod(name = 'psafe.read.getSafe', signature = ['string', 'string', 'int'])
+@auth
+def getSafe(username, password, entPK, **kw):
+    """ Return a struct representing the requested psafe """
+    try:
+        ent = MemPSafe.objects.get(pk = entPK)
+    except MemPSafe.DoesNotExist:
+        raise EntryDoesntExistError
+    
+    repo = ent.repo
+    if repo.user_can_access(kw['user'], mode = "R"):
+        return ent.todict()
+    
+    # User doesn't have access so it might as well not exist
+    raise EntryDoesntExistError
 

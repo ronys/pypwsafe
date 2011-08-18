@@ -74,6 +74,27 @@ class PasswordSafeRepo(models.Model):
                                                verbose_name = "Write-Deny Groups",
                                                help_text = "Groups that do not have write access to this repo. This overrides the write-allow groups list. ",
                                                )
+    # Helpers
+    def _in_group(self, user, group_relate):
+        """ Returns true if the user is in a group that is part of the many-to-many
+        related group listed above """
+        groups = user.groups.all()
+        for group in groups:
+            if group in group_relate.all():
+                return True
+        return False
+        
+    def user_can_access(self, user, mode = "R"):
+        """ Returns true if the user has access to this repo. Mode should
+        be "R" for read only, "RW" for read/write, or "A" for admin. """
+        if mode == "R":
+            return self._in_group(user, self.readAllowGroups) and not self._in_group(user, self.readDenyGroups)
+        elif mode == "A":
+            return self._in_group(user, self.adminGroups)
+        elif mode == "RW":
+            return self._in_group(user, self.readAllowGroups) and not self._in_group(user, self.readDenyGroups) and self._in_group(user, self.writeAllowGroups) and not self._in_group(user, self.writeDenyGroups)
+        else:
+            raise ValueError, "Mode %r is not a valid mode" % mode
     
     # Random ideas: 
     # Include options for storing all safes in a GIT repo
@@ -205,6 +226,27 @@ class MemPSafe(models.Model):
                                       editable = False,
                                       )
     # TODO: Add in safe HMAC validation checks too
+
+    def todict(self, getEntries = True, getEntryHistory = True):
+        """ Return an XML-RPC safe dictionary of the data. Null 
+        fields are deleted! """
+        ret = {
+             'UUID':self.uuid,
+             'Name':self.dbName,
+             'Description':self.dbDescription,
+             'Password':self.dbPassword,
+             'Last Save Time':self.dbTimeStampOfLastSafe,
+             'Last Save App':self.dbLastSaveApp,
+             'Last Save Host':self.dbLastSaveHost,
+             'Last Save User':self.dbLastSaveUser,
+             }
+        if getEntries:
+            ret['Entries'] = [i.todict(history = getEntryHistory) for i in self.mempsafeentry_set.all()]
+        for k, v in ret.items():
+            if v is None:
+                del ret[k]
+        return ret 
+    
     
 class MemPsafeEntry(models.Model):
     """ Represent a cached password safe entry """
@@ -309,7 +351,34 @@ class MemPsafeEntry(models.Model):
                            length = 4096,
                            verbose_name = "Email",
                            )
-
+    
+    def todict(self, history = True):
+        """ Return an XML-RPC safe dictionary of the data. Null 
+        fields are deleted! """
+        ret = {
+             'UUID':self.uuid,
+             'Group':self.group,
+             'Title':self.title,
+             'Username':self.username,
+             'Notes':self.notes,
+             'Password':self.password,
+             'Creation Time':self.creationTime,
+             'Password Last Modification Time':self.passwordModTime,
+             'Last Access Time':self.accessTime,
+             'Password Expiry':self.passwordExpiryTime,
+             'Entry Last Modification Time':self.modTime,
+             'URL':self.url,
+             'AutoType':self.autotype,
+             'Run Command':self.runCommand,
+             'Email':self.email,
+             }
+        if history:
+            ret['History'] = [dict(Password = i.password, CreationTime = i.creationTime) for i in self.mempasswordentryhistory_set.all()]
+        for k, v in ret.items():
+            if v is None:
+                del ret[k]
+        return ret 
+    
 class MemPasswordEntryHistory(models.Model):
     """ Old passwords for the given entry """
     entry = models.ForeignKey(
