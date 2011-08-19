@@ -17,9 +17,11 @@
 #    You should have received a copy of the GNU General Public License
 #    along with PyPWSafe.  If not, see http://www.gnu.org/licenses/old-licenses/gpl-2.0.html 
 #===============================================================================
-"""
+""" Read & write Password Safe v3 files. 
 
-
+@author: Paulson McIntyre <paul@gpmidi.net>
+@copyright: GPLv2
+@version: 0.1
 """
 # Lets this lib work from both 2.4 and above
 try:
@@ -43,8 +45,14 @@ log.debug('initing')
 from uuid import uuid4
 
 def stretchkey(passwd, salt, count):
-    """Streach a key. H(pass+salt)
-
+    """
+    Stretch a key. H(pass+salt)
+    @param passwd: The password being stretched
+    @type passwd: string
+    @param salt: Salt for the password. Should pre-provided random data. 
+    @type salt: string
+    @param count: The number of times to repeat the stretch function
+    @type count: int   
     """
     assert count > 0
     # Hash once with both
@@ -62,29 +70,78 @@ def stretchkey(passwd, salt, count):
 
 from struct import pack, unpack
 class PWSafe3(object):
+    """ A Password safe object. Allows read/write access to most header fields and records in a psafe object. 
     """
-    filename    string        Full path to pwsafe
-    password    string        Passsafe password
-    fl            File Object    PWSafe file handle
-    flfull        string        Contents of pwsafe file
-    pprime        string        Stretched key used in B1-B4
-    enckey        string        K; session key for main data block
-    hshkey        string        L; hmac key
-    records        [Record]    List of all records we have
-    hmacreq        [functions]    List of functions to run to generate hmac. Order matters when reading a 
-                            file.
-    hmac        string        Originally its the hmac from the file. Should be updated when ever changes 
-                            are made.
-    mode        string      RO,RW
-    iv          string(16)  Initialization vector used for CBC mode when encrypting/decrypting the
-                            header and records. 
-    # Passsafe fields
-    version
-    uuid
-    prefs
-
+    
+    filename = None
+    """@ivar: Full path to pwsafe
+    @type filename: string
     """
+    
+    password = None
+    """@ivar: Passsafe password
+    @type password: string
+    """
+    
+    fl = None
+    """@ivar: PWSafe file handle
+    @type fl: File Handle
+    """
+    
+    flfull = None
+    """@ivar: Contents of pwsafe file
+    @type flfull: string
+    """
+            
+    pprime = None
+    """@ivar: Stretched key used in B1 - B4
+    @type pprime: string
+    """
+    
+    enckey = None
+    """@ivar: K; session key for main data block
+    @type enckey: string
+    """
+    
+    hshkey = None
+    """@ivar: L; hmac key
+    @type hshkey: string
+    """
+    
+    records = None
+    """@ivar: List of all records we have
+    @type records: [Record,...]
+    """
+    
+    hmacreq = None
+    """@ivar: List of functions to run to generate hmac. Order matters when reading a file.
+    @type hmacreq: function
+    """
+    
+    hmac = None
+    """@ivar: Originally its the hmac from the file. Should be updated when ever changes are made.
+    @type hmac: string
+    """
+    
+    mode = None
+    """@ivar: Read only or read/write mode. "RO" for read-only or "RW" or read/write.  
+    @type mode: string
+    """
+    
+    iv = None
+    """@ivar: Initialization vector used for CBC mode when encrypting / decrypting the header and records.
+    @type iv: string[16]
+    """ 
+    
     def __init__(self, filename, password, mode = "RW"):
+        """
+        @param filename: The path to the Password Safe file. Will be created if it doesn't already exist. 
+        @type filename: string
+        @param password: The password to encrypt/decrypt the safe with. 
+        @type password: string
+        @param mode: Read only or read/write mode. "RO" for read-only or "RW" or read/write.  
+        @type mode: string
+        """   
         log.debug('Creating psafe %s' % repr(filename))
         self.locked = False
         psafe_exists = os.access(filename, os.F_OK)
@@ -152,6 +209,8 @@ class PWSafe3(object):
         return len(self.records)
 
     def save(self):
+        """ Save the safe to disk 
+        """
         if self.mode == "RW":
             self.serialiaze()
             fil = open(self.filename, "w")
@@ -161,8 +220,7 @@ class PWSafe3(object):
             raise ROSafe, "Safe is not in read/write mode"
 
     def serialiaze(self):
-        """
-        
+        """ Turn the in-memory objects into in-memory strings.         
         """
         # P'
         self._regen_pprime()
@@ -205,7 +263,7 @@ class PWSafe3(object):
     def _regen_pprime(self):
         """Regenerate P'. This is the stretched version of salt and password. """
         self.pprime = stretchkey(self.password, self.salt, self.iter)
-        log.debug("P'=%s" % repr(self.pprime))
+        log.debug("P' = % s" % repr(self.pprime))
 
     def _regen_b1b2(self):
         """Regenerate b1 and b2. This is the encrypted form of K. 
@@ -231,7 +289,7 @@ class PWSafe3(object):
         hsh = sha256_func()
         hsh.update(self.pprime)
         self.hpprime = hsh.digest()
-        log.debug("Set H(P') to %s" % repr(self.hpprime))
+        log.debug("Set H(P') to % s" % repr(self.hpprime))
         assert self.check_password()
 
     def load(self):
@@ -257,14 +315,14 @@ class PWSafe3(object):
         log.debug("Tag: %s" % repr(self.tag))
         log.debug("Salt: %s" % repr(self.salt))
         log.debug("Iter: %s" % repr(self.iter))
-        log.debug("H(P'): %s" % repr(self.hpprime))
-        log.debug("B1B2: %s" % repr(self.b1b2))
-        log.debug("B3B4: %s" % repr(self.b3b4))
-        log.debug("IV: %s" % repr(self.iv))
+        log.debug("H(P'): % s" % repr(self.hpprime))
+        log.debug("B1B2: % s" % repr(self.b1b2))
+        log.debug("B3B4: % s" % repr(self.b3b4))
+        log.debug("IV: % s" % repr(self.iv))
         self.cryptdata = self.flfull[152:-48]
         (self.eof, self.hmac) = unpack('16s32s', self.flfull[-48:])
-        log.debug("EOF: %s" % repr(self.eof))
-        log.debug("HMAC: %s" % repr(self.hmac))
+        log.debug("EOF: % s" % repr(self.eof))
+        log.debug("HMAC: % s" % repr(self.hmac))
         # Determin the password hash
         self.update_pprime()
         # Verify password
@@ -281,11 +339,11 @@ class PWSafe3(object):
         hdr = Create_Header(self._fetch_block)
         self.headers.append(hdr)
         self.hmacreq.append(hdr.hmac_data)
-        #print str(hdr) +"--"+ repr(hdr)
+        #print str(hdr) +" - -"+ repr(hdr)
         while type(hdr) != EOFHeader:
             hdr = Create_Header(self._fetch_block)
             self.headers.append(hdr)
-            #print str(hdr) +"--"+ repr(hdr)
+            #print str(hdr) +" - -"+ repr(hdr)
 
         # Parse DB
         self.records = []
@@ -295,7 +353,7 @@ class PWSafe3(object):
 
         if self.current_hmac(cached = True) != self.hmac:
             log.error('Invalid HMAC Calculated: %s File: %s' % (repr(self.current_hmac()), repr(self.hmac)))
-            raise InvalidHMACError, "Calculated: %s File: %s" % (repr(self.current_hmac()), repr(self.hmac))
+            raise InvalidHMACError, "Calculated: % s File: % s" % (repr(self.current_hmac()), repr(self.hmac))
 
     def __str__(self):
         ret = ''
@@ -304,7 +362,7 @@ class PWSafe3(object):
         return ret
 
     def _fetch_block(self, num_blocks = 1):
-        """Returns one or more 16-byte block of data. Raises EOFError when there is no more data. """
+        """Returns one or more 16 - byte block of data. Raises EOFError when there is no more data. """
         assert num_blocks > 0
         bytes = num_blocks * 16
         if bytes > len(self.remaining_headers):
@@ -354,13 +412,13 @@ class PWSafe3(object):
         return hm.digest()
 
     def check_password(self):
-        """Check that the hash in self.pprime matches whats in the password safe. True if password matches hash in hpprime. False otherwise"""
+        """Check that the hash in self.pprime matches what's in the password safe. True if password matches hash in hpprime. False otherwise"""
         hsh = sha256_func()
         hsh.update(self.pprime)
         return hsh.digest() == self.hpprime
 
     def update_pprime(self):
-        """Update self.pprime. This key is used to decrypt B1/2 and B3/4"""
+        """Update self.pprime. This key is used to decrypt B1 / 2 and B3 / 4"""
         self.pprime = stretchkey(self.password, self.salt, self.iter)
 
     def close(self):
@@ -374,8 +432,11 @@ class PWSafe3(object):
             pass
 
     def listall(self):
-        """Yield all entries in the form
+        """
+        Yield all entries in the form
                 (uuid, title, group, username, password, notes)
+        @rtype: [(uuid, title, group, username, password, notes),...]
+        @return A list of tuples covering all known records. 
                 """
         def nrwrapper(name):
             try:
@@ -394,11 +455,20 @@ class PWSafe3(object):
             )
 
     def getEntries(self):
-        """ Return a list of all records """
+        """ Return a list of all records 
+        @rtype: [Record,...]
+        @return: A list of all records. 
+        """
         return self.records
     
     def getpass(self, uuid = None):
-        """Returns the password of the item with the given UUID"""
+        """Returns the password of the item with the given UUID
+        @param uuid: UUID of the record to find
+        @type uuid: UUID object
+        @rtype: string
+        @return: Password for the record with the given UUID. Raise an exception otherwise
+        @raise UUIDNotFoundError  
+        """
         for record in self.records:
             if record['UUID'] == uuid:
                 return record['Password']

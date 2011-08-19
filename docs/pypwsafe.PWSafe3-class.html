@@ -68,29 +68,8 @@ object --+
 </pre>
 
 <hr />
-<pre class="literalblock">
-
-filename    string        Full path to pwsafe
-password    string        Passsafe password
-fl            File Object    PWSafe file handle
-flfull        string        Contents of pwsafe file
-pprime        string        Stretched key used in B1-B4
-enckey        string        K; session key for main data block
-hshkey        string        L; hmac key
-records        [Record]    List of all records we have
-hmacreq        [functions]    List of functions to run to generate hmac. Order matters when reading a 
-                        file.
-hmac        string        Originally its the hmac from the file. Should be updated when ever changes 
-                        are made.
-mode        string      RO,RW
-iv          string(16)  Initialization vector used for CBC mode when encrypting/decrypting the
-                        header and records. 
-# Passsafe fields
-version
-uuid
-prefs
-
-</pre>
+<p>A Password safe object. Allows read/write access to most header fields
+  and records in a psafe object.</p>
 
 <!-- ==================== INSTANCE METHODS ==================== -->
 <a name="section-InstanceMethods"></a>
@@ -151,7 +130,8 @@ prefs
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="save"></a><span class="summary-sig-name">save</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td><span class="summary-sig"><a name="save"></a><span class="summary-sig-name">save</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Save the safe to disk</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="pypwsafe-pysrc.html#PWSafe3.save">source&nbsp;code</a></span>
             
@@ -167,7 +147,8 @@ prefs
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="serialiaze"></a><span class="summary-sig-name">serialiaze</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td><span class="summary-sig"><a name="serialiaze"></a><span class="summary-sig-name">serialiaze</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Turn the in-memory objects into in-memory strings.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="pypwsafe-pysrc.html#PWSafe3.serialiaze">source&nbsp;code</a></span>
             
@@ -287,7 +268,7 @@ prefs
         <tr>
           <td><span class="summary-sig"><a href="pypwsafe.PWSafe3-class.html#_fetch_block" class="summary-sig-name" onclick="show_private();">_fetch_block</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">num_blocks</span>=<span class="summary-sig-default">1</span>)</span><br />
-      Returns one or more 16-byte block of data.</td>
+      Returns one or more 16 - byte block of data.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="pypwsafe-pysrc.html#PWSafe3._fetch_block">source&nbsp;code</a></span>
             
@@ -373,7 +354,7 @@ prefs
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td><span class="summary-sig"><a href="pypwsafe.PWSafe3-class.html#check_password" class="summary-sig-name">check_password</a>(<span class="summary-sig-arg">self</span>)</span><br />
-      Check that the hash in self.pprime matches whats in the password 
+      Check that the hash in self.pprime matches what's in the password 
       safe.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="pypwsafe-pysrc.html#PWSafe3.check_password">source&nbsp;code</a></span>
@@ -441,8 +422,10 @@ prefs
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td><span class="summary-sig"><a name="listall"></a><span class="summary-sig-name">listall</span>(<span class="summary-sig-arg">self</span>)</span><br />
-      Yield all entries in the form (uuid, title, group, username, 
-      password, notes)</td>
+      Yield all entries in the form
+        (uuid, title, group, username, password, notes)
+@rtype: [(uuid, title, group, username, password, notes),...]
+@return A list of tuples covering all known records.</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="pypwsafe-pysrc.html#PWSafe3.listall">source&nbsp;code</a></span>
             
@@ -454,11 +437,11 @@ prefs
   </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
+      <span class="summary-type">[Record,...]</span>
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="getEntries"></a><span class="summary-sig-name">getEntries</span>(<span class="summary-sig-arg">self</span>)</span><br />
+          <td><span class="summary-sig"><a href="pypwsafe.PWSafe3-class.html#getEntries" class="summary-sig-name">getEntries</a>(<span class="summary-sig-arg">self</span>)</span><br />
       Return a list of all records</td>
           <td align="right" valign="top">
             <span class="codelink"><a href="pypwsafe-pysrc.html#PWSafe3.getEntries">source&nbsp;code</a></span>
@@ -471,11 +454,11 @@ prefs
   </tr>
 <tr>
     <td width="15%" align="right" valign="top" class="summary">
-      <span class="summary-type">&nbsp;</span>
+      <span class="summary-type">string</span>
     </td><td class="summary">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td><span class="summary-sig"><a name="getpass"></a><span class="summary-sig-name">getpass</span>(<span class="summary-sig-arg">self</span>,
+          <td><span class="summary-sig"><a href="pypwsafe.PWSafe3-class.html#getpass" class="summary-sig-name">getpass</a>(<span class="summary-sig-arg">self</span>,
         <span class="summary-sig-arg">uuid</span>=<span class="summary-sig-default">None</span>)</span><br />
       Returns the password of the item with the given UUID</td>
           <td align="right" valign="top">
@@ -862,6 +845,121 @@ prefs
     </td>
   </tr>
 </table>
+<!-- ==================== INSTANCE VARIABLES ==================== -->
+<a name="section-InstanceVariables"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Instance Variables</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-InstanceVariables"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="filename"></a><span class="summary-name">filename</span> = <code title="None">None</code><br />
+      Full path to pwsafe
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="password"></a><span class="summary-name">password</span> = <code title="None">None</code><br />
+      Passsafe password
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="fl"></a><span class="summary-name">fl</span> = <code title="None">None</code><br />
+      PWSafe file handle
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="flfull"></a><span class="summary-name">flfull</span> = <code title="None">None</code><br />
+      Contents of pwsafe file
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="pprime"></a><span class="summary-name">pprime</span> = <code title="None">None</code><br />
+      Stretched key used in B1 - B4
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="enckey"></a><span class="summary-name">enckey</span> = <code title="None">None</code><br />
+      K; session key for main data block
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="hshkey"></a><span class="summary-name">hshkey</span> = <code title="None">None</code><br />
+      L; hmac key
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="records"></a><span class="summary-name">records</span> = <code title="None">None</code><br />
+      List of all records we have
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="pypwsafe.PWSafe3-class.html#hmacreq" class="summary-name">hmacreq</a> = <code title="None">None</code><br />
+      List of functions to run to generate hmac.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="pypwsafe.PWSafe3-class.html#hmac" class="summary-name">hmac</a> = <code title="None">None</code><br />
+      Originally its the hmac from the file.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="pypwsafe.PWSafe3-class.html#mode" class="summary-name">mode</a> = <code title="None">None</code><br />
+      Read only or read/write mode.
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="iv"></a><span class="summary-name">iv</span> = <code title="None">None</code><br />
+      Initialization vector used for CBC mode when encrypting / decrypting 
+      the header and records.
+    </td>
+  </tr>
+</table>
 <!-- ==================== PROPERTIES ==================== -->
 <a name="section-Properties"></a>
 <table class="summary" border="1" cellpadding="3"
@@ -926,9 +1024,16 @@ prefs
   <p>x.__init__(...) initializes x; see x.__class__.__doc__ for 
   signature</p>
   <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>filename</code></strong> (string) - The path to the Password Safe file. Will be created if it doesn't
+          already exist.</li>
+        <li><strong class="pname"><code>password</code></strong> (string) - The password to encrypt/decrypt the safe with.</li>
+        <li><strong class="pname"><code>mode</code></strong> (string) - Read only or read/write mode. &quot;RO&quot; for read-only or 
+          &quot;RW&quot; or read/write.</li>
+    </ul></dd>
     <dt>Overrides:
         object.__init__
-        <dd><em class="note">(inherited documentation)</em></dd>
     </dt>
   </dl>
 </td></tr></table>
@@ -1052,8 +1157,8 @@ prefs
     </td>
   </tr></table>
   
-  <p>Returns one or more 16-byte block of data. Raises EOFError when there 
-  is no more data.</p>
+  <p>Returns one or more 16 - byte block of data. Raises EOFError when 
+  there is no more data.</p>
   <dl class="fields">
   </dl>
 </td></tr></table>
@@ -1092,8 +1197,8 @@ prefs
     </td>
   </tr></table>
   
-  <p>Check that the hash in self.pprime matches whats in the password safe.
-  True if password matches hash in hpprime. False otherwise</p>
+  <p>Check that the hash in self.pprime matches what's in the password 
+  safe. True if password matches hash in hpprime. False otherwise</p>
   <dl class="fields">
   </dl>
 </td></tr></table>
@@ -1112,8 +1217,56 @@ prefs
     </td>
   </tr></table>
   
-  <p>Update self.pprime. This key is used to decrypt B1/2 and B3/4</p>
+  <p>Update self.pprime. This key is used to decrypt B1 / 2 and B3 / 4</p>
   <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="getEntries"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">getEntries</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pypwsafe-pysrc.html#PWSafe3.getEntries">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Return a list of all records</p>
+  <dl class="fields">
+    <dt>Returns: [Record,...]</dt>
+        <dd>A list of all records.</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="getpass"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">getpass</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">uuid</span>=<span class="sig-default">None</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pypwsafe-pysrc.html#PWSafe3.getpass">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Returns the password of the item with the given UUID</p>
+  <dl class="fields">
+    <dt>Parameters:</dt>
+    <dd><ul class="nomargin-top">
+        <li><strong class="pname"><code>uuid</code></strong> (UUID object) - UUID of the record to find</li>
+    </ul></dd>
+    <dt>Returns: string</dt>
+        <dd>Password for the record with the given UUID. Raise an exception 
+          otherwise @raise UUIDNotFoundError</dd>
   </dl>
 </td></tr></table>
 </div>
@@ -1133,6 +1286,82 @@ prefs
   
   <p>Acquire a lock on the DB. Raise an exception on failure</p>
   <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== INSTANCE VARIABLE DETAILS ==================== -->
+<a name="section-InstanceVariableDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Instance Variable Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-InstanceVariableDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="hmacreq"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">hmacreq</h3>
+  List of functions to run to generate hmac. Order matters when reading a 
+  file.
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+None
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="hmac"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">hmac</h3>
+  Originally its the hmac from the file. Should be updated when ever 
+  changes are made.
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+None
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="mode"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">mode</h3>
+  Read only or read/write mode. &quot;RO&quot; for read-only or 
+  &quot;RW&quot; or read/write.
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+None
+</pre></td></tr></table>
+</dd>
   </dl>
 </td></tr></table>
 </div>
@@ -1168,7 +1397,7 @@ prefs
 <table border="0" cellpadding="0" cellspacing="0" width="100%%">
   <tr>
     <td align="left" class="footer">
-    Generated by Epydoc 3.0.1 on Thu Aug 18 20:49:44 2011
+    Generated by Epydoc 3.0.1 on Thu Aug 18 21:19:10 2011
     </td>
     <td align="right" class="footer">
       <a target="mainFrame" href="http://epydoc.sourceforge.net"
