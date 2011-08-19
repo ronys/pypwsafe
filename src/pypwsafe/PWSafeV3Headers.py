@@ -17,8 +17,11 @@
 #    You should have received a copy of the GNU General Public License
 #    along with PyPWSafe.  If not, see http://www.gnu.org/licenses/old-licenses/gpl-2.0.html 
 #===============================================================================
-"""Header objects for psafe v03
-
+""" Header objects for psafe v3
+ 
+@author: Paulson McIntyre <paul@gpmidi.net>
+@license: GPLv2
+@version: 0.1
 """
 # Note: Use "=" in all packs to account for 64bit systems
 
