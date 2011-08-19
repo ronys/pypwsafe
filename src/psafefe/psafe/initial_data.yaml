@@ -1,5 +1,0 @@
-- model:PasswordSafeRepo
-  pk:1
-  fields:
-    name: Personal Password Safes
-    path: /tmp/
