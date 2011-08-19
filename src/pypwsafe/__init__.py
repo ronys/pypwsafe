@@ -45,7 +45,7 @@ from uuid import uuid4
 def stretchkey(passwd, salt, count):
     """Streach a key. H(pass+salt)
 
-	"""
+    """
     assert count > 0
     # Hash once with both
     inithsh = sha256_func()
@@ -63,27 +63,27 @@ def stretchkey(passwd, salt, count):
 from struct import pack, unpack
 class PWSafe3(object):
     """
-	filename	string		Full path to pwsafe
-	password	string		Passsafe password
-	fl		    File Object	PWSafe file handle
-	flfull		string		Contents of pwsafe file
-	pprime		string		Stretched key used in B1-B4
-	enckey		string		K; session key for main data block
-	hshkey		string		L; hmac key
-	records		[Record]	List of all records we have
-	hmacreq		[functions]	List of functions to run to generate hmac. Order matters when reading a 
-	                        file.
-	hmac		string		Originally its the hmac from the file. Should be updated when ever changes 
-	                        are made.
-	mode        string      RO,RW
-	iv          string(16)  Initialization vector used for CBC mode when encrypting/decrypting the
-	                        header and records. 
-	# Passsafe fields
-	version
-	uuid
-	prefs
+    filename    string        Full path to pwsafe
+    password    string        Passsafe password
+    fl            File Object    PWSafe file handle
+    flfull        string        Contents of pwsafe file
+    pprime        string        Stretched key used in B1-B4
+    enckey        string        K; session key for main data block
+    hshkey        string        L; hmac key
+    records        [Record]    List of all records we have
+    hmacreq        [functions]    List of functions to run to generate hmac. Order matters when reading a 
+                            file.
+    hmac        string        Originally its the hmac from the file. Should be updated when ever changes 
+                            are made.
+    mode        string      RO,RW
+    iv          string(16)  Initialization vector used for CBC mode when encrypting/decrypting the
+                            header and records. 
+    # Passsafe fields
+    version
+    uuid
+    prefs
 
-	"""
+    """
     def __init__(self, filename, password, mode = "RW"):
         log.debug('Creating psafe %s' % repr(filename))
         self.locked = False
@@ -236,22 +236,22 @@ class PWSafe3(object):
 
     def load(self):
         """Load a psafe3 file
-		Will raise PasswordError if the password is bad.
-		Format:
-		Name	Bytes	Type
-		TAG 	4 	ASCII
-		SALT	32	BIN
-		ITER	4	INT 32
-		H(P')	32	BIN
-		B1	16	BIN
-		B2	16	BIN
-		B3	16	BIN
-		B4	16	BIN
-		IV	16	BIN
-		Crypted	16n	BIN
-		EOF	16	ASCII
-		HMAC	32	BIN
-		"""
+        Will raise PasswordError if the password is bad.
+        Format:
+        Name    Bytes    Type
+        TAG     4     ASCII
+        SALT    32    BIN
+        ITER    4    INT 32
+        H(P')    32    BIN
+        B1    16    BIN
+        B2    16    BIN
+        B3    16    BIN
+        B4    16    BIN
+        IV    16    BIN
+        Crypted    16n    BIN
+        EOF    16    ASCII
+        HMAC    32    BIN
+        """
         log.debug('Loading psafe')
         (self.tag, self.salt, self.iter, self.hpprime, self.b1b2, self.b3b4, self.iv) = unpack('4s32sI32s32s32s16s', self.flfull[:152])
         log.debug("Tag: %s" % repr(self.tag))
@@ -583,4 +583,3 @@ def ispsafe3(filename):
 if __name__ == "__main__":
     import doctest
     doctest.testmod()
-

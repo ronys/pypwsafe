@@ -19,14 +19,6 @@
 #===============================================================================
 """Header objects for psafe v03
 
-# Other header types we don't handle yet
-, Header(2,23,'\x17\x00\x00\x00\x02B 28 1 B 29 1 I 12 255 k\xd6\xa9*')
-, Header(3,4,'\x04\x00\x00\x00\x031111J\xa9\x8a\xbd\x15Ou')
-, Header(4,4,'\x04\x00\x00\x00\x04\xf1\x9fpId\xfbeb\xff[\x9a')
-, Header(7,16,'\x10\x00\x00\x00\x07paulson_mcintyre\xa7\xcd\x90\x03nx0\xf7{\xd4\x8a')
-, Header(8,9,'\t\x00\x00\x00\x08L-LV01203\xd1\x12')
-, Header(6,19,'\x13\x00\x00\x00\x06Password Safe V3.11\xc3\n\x85\x93\x95\x82z\t')
-
 """
 # Note: Use "=" in all packs to account for 64bit systems
 
