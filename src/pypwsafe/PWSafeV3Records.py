@@ -18,8 +18,11 @@
 #    You should have received a copy of the GNU General Public License
 #    along with PyPWSafe.  If not, see http://www.gnu.org/licenses/old-licenses/gpl-2.0.html 
 #===============================================================================
-"""Record and record properity objects
+"""Record and record propriety objects
 
+@author: Paulson McIntyre <paul@gpmidi.net>
+@license: GPLv2
+@version: 0.1
 """
 
 from struct import unpack, pack

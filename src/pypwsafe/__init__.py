@@ -20,7 +20,7 @@
 """ Read & write Password Safe v3 files. 
 
 @author: Paulson McIntyre <paul@gpmidi.net>
-@copyright: GPLv2
+@license: GPLv2
 @version: 0.1
 """
 # Lets this lib work from both 2.4 and above
