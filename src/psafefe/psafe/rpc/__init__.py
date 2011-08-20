@@ -18,8 +18,6 @@
 """ XML-RPC and JSON RPC
 @warning: All new ajax files MUST be added to this import list
 """
-from auth import *
-from errors import *
 # otherwise they won't be registered. 
 import read
 import personal
