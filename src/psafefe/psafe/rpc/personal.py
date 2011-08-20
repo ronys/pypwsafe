@@ -23,8 +23,8 @@ from rpc4django import rpcmethod
 from psafefe.psafe.rpc._errors import *
 from psafefe.psafe.rpc._auth import auth
 from psafefe.psafe.models import *
-from psafefe.psafe.tasks import newPersonalSafe
-from psafefe.psafe.functions import getDatabasePasswordByUser
+from psafefe.psafe.tasks.write import addUpdateEntry
+from psafefe.psafe.functions import setDatabasePasswordByUser
 
 # Psafe entry methods
 @rpcmethod(name = 'psafe.personal.setPsafePassword', signature = ['boolean', 'string', 'string', 'int', 'string'])
@@ -40,7 +40,14 @@ def setPsafePassword(username, password, safePK, safePassword, **kw):
     repo = ent.safe.safe.repo
     if repo.user_can_access(kw['user'], mode = "R"):
         # User should have access to the requested safe
-        
+        setDatabasePasswordByUser(
+                                  user = kw['user'],
+                                  userPassword = password,
+                                  psafe = ent.safe.safe,
+                                  psafePassword = safePassword,
+                                  wait = True,
+                                  )
+        return True
     # User doesn't have access so it might as well not exist
     raise EntryDoesntExistError
 
