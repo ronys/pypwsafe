@@ -15,8 +15,11 @@
 #    You should have received a copy of the GNU General Public License
 #    along with PyPWSafe.  If not, see http://www.gnu.org/licenses/old-licenses/gpl-2.0.html 
 #===============================================================================
-
-# WARNING: All new ajax files MUST be added to this import list
+""" XML-RPC and JSON RPC
+@warning: All new ajax files MUST be added to this import list
+"""
 # otherwise they won't be registered. 
-import dummy
 import read
+import personal
+import sync
+
