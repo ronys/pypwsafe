@@ -20,7 +20,8 @@ Created on Aug 16, 2011
 
 @author: gpmidi
 '''
-from celery.task import task #@UnresolvedImport
+#from celery.task import task #@UnresolvedImport
+from celery.decorators import task #@UnresolvedImport
 from psafefe.psafe.models import *
 from psafefe.psafe.errors import *
 from pypwsafe import PWSafe3
