@@ -21,7 +21,7 @@ Created on Aug 17, 2011
 @author: gpmidi
 '''
 from django.contrib.auth import authenticate
-from psafefe.psafe.rpc._errors import *
+from psafefe.psafe.rpc.errors import *
 
 def _auth(username, password):
     user = authenticate(username = username, password = password)
