@@ -20,8 +20,8 @@ Created on Aug 16, 2011
 @author: gpmidi
 '''
 from rpc4django import rpcmethod
-from psafefe.psafe.rpc._errors import *
-from psafefe.psafe.rpc._auth import auth
+from psafefe.psafe.rpc.errors import *
+from psafefe.psafe.rpc.auth import auth
 from psafefe.psafe.models import *
 from psafefe.psafe.tasks.write import addUpdateEntry
 from psafefe.psafe.functions import setDatabasePasswordByUser
