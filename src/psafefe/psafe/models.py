@@ -27,7 +27,6 @@ class PasswordSafeRepo(models.Model):
         ordering = [
                     'name',
                     ]
-        abstract = True
         verbose_name = "Password Safe Repo"
         verbose_name_plural = "Password Safe Repos"
         permissions = (
