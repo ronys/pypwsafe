@@ -38,14 +38,14 @@ class PasswordSafeRepo(models.Model):
     name = models.CharField(
                             null = False,
                             blank = False,
-                            length = 255,
+                            max_length = 255,
                             verbose_name = "Name",
                             help_text = "A human readable name for the password safe repository",
                             )
     path = models.CharField(
                             null = False,
                             blank = False,
-                            length = 1024 * 1024,
+                            max_length = 1024 * 1024,
                             verbose_name = "Server Location",
                             help_text = "The location on the server of the password safes",
                             validators = [
@@ -132,7 +132,7 @@ class PasswordSafe(models.Model):
                             null = False,
                             # Make it a callable otherwise all will default to the same (at least within one instance)
                             default = lambda: str(uuid4()),
-                            length = 36,
+                            max_length = 36,
                             verbose_name = "UUID",
                             help_text = "Password Safe GUID",
                             editable = False,
@@ -140,7 +140,7 @@ class PasswordSafe(models.Model):
     filename = models.CharField(
                                 # The system should note this safe as "missing" if it can't be found atm. 
                                 null = True,
-                                length = 1024 * 1024,
+                                max_length = 1024 * 1024,
                                 verbose_name = "Password Safe Path",
                                 help_text = "The full path to the password safe from the worker's perspective",
                                 )
@@ -178,7 +178,7 @@ class MemPSafe(models.Model):
                             null = False,
                             # Make it a callable otherwise all will default to the same (at least within one instance)
                             default = lambda: str(uuid4()),
-                            length = 36,
+                            max_length = 36,
                             verbose_name = "UUID",
                             help_text = "Password Safe GUID",
                             editable = False,
@@ -187,21 +187,21 @@ class MemPSafe(models.Model):
                               null = True,
                               default = None,
                               blank = True,
-                              length = 1024 * 1024,
+                              max_length = 1024 * 1024,
                               verbose_name = "Database Name",
                               )
     dbDescription = models.TextField(
                                      null = True,
                                      blank = True,
                                      default = None,
-                                     length = 1024 * 1024 * 1024,
+                                     max_length = 1024 * 1024 * 1024,
                                      verbose_name = "Database Description",
                                      )
     dbPassword = models.CharField(
                                   null = False,
                                   blank = True,
                                   default = "bogus12345",
-                                  length = 1024 * 1024,
+                                  max_length = 1024 * 1024,
                                   verbose_name = "Database Password",
                                   )
     dbTimeStampOfLastSafe = models.DateTimeField(
@@ -272,7 +272,7 @@ class MemPsafeEntry(models.Model):
                             null = False,
                             # Make it a callable otherwise all will default to the same (at least within one instance)
                             default = lambda: str(uuid4()),
-                            length = 36,
+                            max_length = 36,
                             verbose_name = "UUID",
                             help_text = "Entry GUID",
                             editable = False,
@@ -280,32 +280,32 @@ class MemPsafeEntry(models.Model):
     group = models.CharField(
                              null = True,
                              default = None,
-                             length = 4096,
+                             max_length = 4096,
                              verbose_name = "Group",
                              help_text = "Dot separated group listing for the entry",
                              )
     title = models.CharField(
                              null = True,
                              default = None,
-                             length = 4096,
+                             max_length = 4096,
                              verbose_name = "Title",
                              )
     username = models.CharField(
                              null = True,
                              default = None,
-                             length = 4096,
+                             max_length = 4096,
                              verbose_name = "Username",
                              )
     notes = models.TextField(
                              null = True,
                              default = None,
-                             length = 1024 * 1024,
+                             max_length = 1024 * 1024,
                              verbose_name = "Notes",
                              )
     password = models.CharField(
                              null = True,
                              default = None,
-                             length = 4096,
+                             max_length = 4096,
                              verbose_name = "Password",
                              )
     creationTime = models.DateTimeField(
@@ -336,26 +336,26 @@ class MemPsafeEntry(models.Model):
     url = models.CharField(
                            null = True,
                            default = None,
-                           length = 4096,
+                           max_length = 4096,
                            verbose_name = "URL",
                            )
     autotype = models.CharField(
                            null = True,
                            default = None,
-                           length = 4096,
+                           max_length = 4096,
                            verbose_name = "Autotype String",
                            )
     runCommand = models.CharField(
                            null = True,
                            default = None,
-                           length = 4096,
+                           max_length = 4096,
                            verbose_name = "Run Command",
                            )
     # Don't use an email field as psafe doesn't make any guarantees about the value
     email = models.CharField(
                            null = True,
                            default = None,
-                           length = 4096,
+                           max_length = 4096,
                            verbose_name = "Email",
                            )
     
@@ -396,7 +396,7 @@ class MemPasswordEntryHistory(models.Model):
     password = models.CharField(
                              null = True,
                              default = None,
-                             length = 4096,
+                             max_length = 4096,
                              verbose_name = "Old Password",
                              )
     creationTime = models.DateTimeField(
