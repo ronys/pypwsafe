@@ -26,7 +26,7 @@ from os.path import join
 from django.conf.settings import PSAFE_PERSONAL_PATH #@UnresolvedImport
 import os
 from psafefe.psafe.errors import *
-from psafefe.psafe.rpc._errors import *
+from psafefe.psafe.rpc.errors import *
 
 def getPersonalPsafeRepo():
     """ Returns the repo for the personal psafes """
