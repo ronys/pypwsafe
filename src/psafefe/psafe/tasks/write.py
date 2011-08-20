@@ -86,9 +86,8 @@ def addUpdateEntry(
              runCommand = None,
              email = None,
              ):
-    """ Adds an entry to the given psafe. Update if it already exists. Group,
-    title, and username are used to determine if an entry should be updated. 
-    Reloads the psafe data once complete. 
+    """ Adds an entry to the given psafe. Update if it already exists. Reloads the psafe data once complete.
+    @warning: Group, title, and username are used to determine if an entry should be updated.  
     """
     psafe = PasswordSafe.objects.get(pk = psafePK)
     pypwsafe = PWSafe3(

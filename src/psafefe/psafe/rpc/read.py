@@ -24,7 +24,7 @@ from psafefe.psafe.rpc._errors import *
 from psafefe.psafe.rpc._auth import auth
 from psafefe.psafe.models import *
 
-# Psafe entry methods
+# Entry methods
 @rpcmethod(name = 'psafe.read.getEntryByPK', signature = ['struct', 'string', 'string', 'int'])
 @auth
 def getEntryByPK(username, password, entPK, **kw):
@@ -59,3 +59,10 @@ def getSafeByPK(username, password, entPK, **kw):
     # User doesn't have access so it might as well not exist
     raise EntryDoesntExistError
 
+#         Password Safe methods
+@rpcmethod(name = 'psafe.read.getSafeForUser', signature = ['list', 'string', 'string'])
+@auth
+def getSafeForUser(username, password, **kw):
+    """ Return a list of structs representing all psafe files accessable by the requesting user. """
+    
+    
