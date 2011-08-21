@@ -59,10 +59,17 @@ def getSafeByPK(username, password, entPK, **kw):
     # User doesn't have access so it might as well not exist
     raise EntryDoesntExistError
 
-#         Password Safe methods
-@rpcmethod(name = 'psafe.read.getSafeForUser', signature = ['list', 'string', 'string'])
+@rpcmethod(name = 'psafe.read.getSafesForUser', signature = ['list', 'string', 'string'])
 @auth
-def getSafeForUser(username, password, **kw):
-    """ Return a list of structs representing all psafe files accessable by the requesting user. """
-    
+def getSafesForUser(username, password, getEntries = True, getEntryHistory = True, mode = 'R', **kw):
+    """ Return a list of structs representing all psafe files accessible by the requesting user. """
+    # TODO: Make this faster...this way is dumb
+    valid = {}
+    for repo in PasswordSafeRepo.objects.all():
+        if repo.user_can_access(kw['user'], mode = mode):
+            for safe in repo.passwordsafe_set.all():
+                # Dedep, just in case
+                for memsafe in safe.mempsafe_set.all():
+                    valid[memsafe.pk] = memsafe
+    return [memsafe.todict(getEntries = getEntries, getEntryHistory = getEntryHistory) for memsafe in valid.values()]
     

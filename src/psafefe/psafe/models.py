@@ -91,11 +91,11 @@ class PasswordSafeRepo(models.Model):
         """ Returns true if the user has access to this repo. Mode should
         be "R" for read only, "RW" for read/write, or "A" for admin. """
         if mode == "R":
-            return self._in_group(user, self.readAllowGroups) and not self._in_group(user, self.readDenyGroups)
+            return (self._in_group(user, self.readAllowGroups) and not self._in_group(user, self.readDenyGroups)) or self._in_group(user, self.adminGroups)
         elif mode == "A":
             return self._in_group(user, self.adminGroups)
         elif mode == "RW":
-            return self._in_group(user, self.readAllowGroups) and not self._in_group(user, self.readDenyGroups) and self._in_group(user, self.writeAllowGroups) and not self._in_group(user, self.writeDenyGroups)
+            return (self._in_group(user, self.readAllowGroups) and not self._in_group(user, self.readDenyGroups) and self._in_group(user, self.writeAllowGroups) and not self._in_group(user, self.writeDenyGroups)) or self._in_group(user, self.adminGroups)
         else:
             raise ValueError, "Mode %r is not a valid mode" % mode
     
