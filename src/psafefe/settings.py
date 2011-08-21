@@ -203,6 +203,13 @@ BROKER_PASSWORD = "bogus12345"
 BROKER_VHOST = "gpdev"
 CELERY_RESULT_BACKEND = "amqp"
 
+#            RPC4Django
+# Set these to true in high security env
+RPC4DJANGO_RESTRICT_RPCTEST = False
+RPC4DJANGO_RESTRICT_INTROSPECTION = False
+# Extra logging for debugging - Disable in production
+RPC4DJANGO_LOG_REQUESTS_RESPONSES = True
+
 #             PSAFE Settings
 
 # Where a user's private psafe is stored. These safes allow a user to save
