@@ -23,7 +23,7 @@ Created on Aug 17, 2011
 from django.contrib.auth.models import User, Group
 from psafefe.psafe.models import *
 from os.path import join
-from django.conf.settings import PSAFE_PERSONAL_PATH #@UnresolvedImport
+from django.conf import settings
 import os
 from psafefe.psafe.errors import *
 from psafefe.psafe.rpc.errors import *
@@ -32,11 +32,11 @@ def getPersonalPsafeRepo():
     """ Returns the repo for the personal psafes """
     try:
         p = PasswordSafeRepo.objects.get(pk = 1)
-        if p.path != PSAFE_PERSONAL_PATH:
-            p.path = PSAFE_PERSONAL_PATH
+        if p.path != settings.PSAFE_PERSONAL_PATH:
+            p.path = settings.PSAFE_PERSONAL_PATH
             p.save()
     except PasswordSafeRepo.DoesNotExist:
-        p = PasswordSafeRepo(pk = 1, name = "Personal Password Safes", path = PSAFE_PERSONAL_PATH)
+        p = PasswordSafeRepo(pk = 1, name = "Personal Password Safes", path = settings.PSAFE_PERSONAL_PATH)
         p.save()
     return p
 

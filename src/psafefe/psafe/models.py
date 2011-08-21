@@ -55,27 +55,32 @@ class PasswordSafeRepo(models.Model):
                                            Group,
                                            verbose_name = "Admin Groups",
                                            help_text = "Groups that have administrative access to this repo",
+                                           related_name = "admin_groups_set",
                                            )
     readAllowGroups = models.ManyToManyField(
                                                Group,
                                                verbose_name = "Read-Allow Groups",
                                                help_text = "Groups that have read access to this repo",
+                                               related_name = "read_allow_groups_set",
                                                )
     writeAllowGroups = models.ManyToManyField(
                                                Group,
                                                verbose_name = "Write-Allow Groups",
                                                help_text = "Groups that have write access to this repo",
+                                               related_name = "write_allow_groups_set",
                                                )
     # These are applied before the allows
     readDenyGroups = models.ManyToManyField(
                                                Group,
                                                verbose_name = "Read-Deny Groups",
                                                help_text = "Groups that do not have read access to this repo. This overrides the read-allow groups list. ",
+                                               related_name = "read_deny_groups_set",
                                                )
     writeDenyGroups = models.ManyToManyField(
                                                Group,
                                                verbose_name = "Write-Deny Groups",
                                                help_text = "Groups that do not have write access to this repo. This overrides the write-allow groups list. ",
+                                               related_name = "write_deny_groups_set",
                                                )
     # Helpers
     def _in_group(self, user, group_relate):
@@ -211,14 +216,17 @@ class MemPSafe(models.Model):
     dbLastSaveApp = models.CharField(
                                      null = True,
                                      verbose_name = "Last Save App",
+                                     max_length = 4096,
                                      )
     dbLastSaveHost = models.CharField(
                                      null = True,
                                      verbose_name = "Last Save Host",
+                                     max_length = 4096,
                                      )
     dbLastSaveUser = models.CharField(
                                      null = True,
                                      verbose_name = "Last Save User",
+                                     max_length = 4096,
                                      )
     # Cache params
     fileLastModified = models.DateTimeField(

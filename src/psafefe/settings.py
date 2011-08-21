@@ -35,7 +35,7 @@ MANAGERS = ADMINS
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': 'testdb', # Or path to database file if using sqlite3.
+        'NAME': '/tmp/testdb.sqlite3', # Or path to database file if using sqlite3.
         'USER': '', # Not used with sqlite3.
         'PASSWORD': '', # Not used with sqlite3.
         'HOST': '', # Set to empty string for localhost. Not used with sqlite3.
@@ -195,7 +195,13 @@ LOGGING = {
         },
     }
 }
-
+#            Celery settings
+BROKER_HOST = "mem0"
+BROKER_PORT = 5672
+BROKER_USER = "gpdev"
+BROKER_PASSWORD = "bogus12345"
+BROKER_VHOST = "gpdev"
+CELERY_RESULT_BACKEND = "amqp"
 
 #             PSAFE Settings
 
