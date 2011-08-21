@@ -15,10 +15,10 @@
 #    You should have received a copy of the GNU General Public License
 #    along with PyPWSafe.  If not, see http://www.gnu.org/licenses/old-licenses/gpl-2.0.html 
 #===============================================================================
-'''
+''' Tasks to update/delete/create password entries and password safes
 Created on Aug 16, 2011
 
-@author: gpmidi
+@author: Paulson McIntyre <paul@gpmidi.net>
 '''
 #from celery.task import task #@UnresolvedImport
 from celery.decorators import task #@UnresolvedImport

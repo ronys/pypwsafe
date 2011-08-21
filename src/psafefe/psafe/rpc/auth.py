@@ -18,7 +18,7 @@
 ''' XML-RPC Authentication helpers
 Created on Aug 17, 2011
 
-@author: gpmidi
+@author: Paulson McIntyre <paul@gpmidi.net>
 '''
 from django.contrib.auth import authenticate
 from psafefe.psafe.rpc.errors import *

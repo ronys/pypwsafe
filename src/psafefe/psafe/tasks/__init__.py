@@ -15,7 +15,10 @@
 #    You should have received a copy of the GNU General Public License
 #    along with PyPWSafe.  If not, see http://www.gnu.org/licenses/old-licenses/gpl-2.0.html 
 #===============================================================================
-
+""" Celery async tasks
+@warning: All new task containing modules MUST be imported by this file. Otherwise they will not be automatically detected/registered by Celeryd. 
+@author: Paulson McIntyre <paul@gpmidi.net>
+"""
 from load import *
 from personal import *
 from write import *

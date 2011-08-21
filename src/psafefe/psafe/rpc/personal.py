@@ -17,7 +17,7 @@
 ''' Psafe cache control
 Created on Aug 16, 2011
 
-@author: gpmidi
+@author: Paulson McIntyre <paul@gpmidi.net>
 '''
 from rpc4django import rpcmethod
 from psafefe.psafe.rpc.errors import *

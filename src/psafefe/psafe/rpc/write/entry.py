@@ -15,20 +15,10 @@
 #    You should have received a copy of the GNU General Public License
 #    along with PyPWSafe.  If not, see http://www.gnu.org/licenses/old-licenses/gpl-2.0.html 
 #===============================================================================
-''' Tasks to handle interacting with a user's personal psafe
-Created on Aug 16, 2011
+""" RPC methods to create/update/delete entries within a psafe
+Created on Aug 21, 2011
 
 @author: Paulson McIntyre <paul@gpmidi.net>
-'''
-#from celery.task import task #@UnresolvedImport
-from celery.decorators import task #@UnresolvedImport
-from psafefe.psafe.models import *
-from psafefe.psafe.errors import *
-from psafefe.psafe.tasks.load import loadSafe
-
-from pypwsafe import PWSafe3
-
-import stat
-
+"""
 
 

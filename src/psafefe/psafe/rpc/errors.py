@@ -18,7 +18,7 @@
 ''' XML-RPC Errors
 Created on Aug 17, 2011
 
-@author: gpmidi
+@author: Paulson McIntyre <paul@gpmidi.net>
 '''
 
 
