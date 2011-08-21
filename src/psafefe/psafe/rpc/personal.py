@@ -27,13 +27,57 @@ from psafefe.psafe.tasks.write import addUpdateEntry
 from psafefe.psafe.functions import setDatabasePasswordByUser
 
 # Psafe entry methods
-@rpcmethod(name = 'psafe.personal.setPsafePassword', signature = ['boolean', 'string', 'string', 'int', 'string'])
+@rpcmethod(name = 'psafe.personal.setPsafePasswordByPK', signature = ['boolean', 'string', 'string', 'int', 'string'])
 @auth
-def setPsafePassword(username, password, safePK, safePassword, **kw):
-    """ Update the psafe cache for the given entities. If sync is true, 
-    then wait for the cache to update before returning. """
+def setPsafePasswordByPK(username, password, safePK, safePassword, **kw):
+    """ Update the given user's personal psafe to include the password to the given safe.  
+    @param username: Requesting user's login
+    @type username: string
+    @param password: Requesting user's login
+    @type password: string
+    @param safePK: The database id of the safe that the password is for.  
+    @type safePK: int
+    @param safePassword: The password to use when decrypting the given psafe. 
+    @type safePassword: string
+    @return: boolean, True on success
+    @raise EntryDoesntExistError: The safe you are trying to save a password for doesn't exist or the requesting user doesn't have access to it.  
+    """
     try:
         ent = MemPsafeEntry.objects.get(pk = safePK)
+    except MemPsafeEntry.DoesNotExist:
+        raise EntryDoesntExistError
+    
+    repo = ent.safe.safe.repo
+    if repo.user_can_access(kw['user'], mode = "R"):
+        # User should have access to the requested safe
+        setDatabasePasswordByUser(
+                                  user = kw['user'],
+                                  userPassword = password,
+                                  psafe = ent.safe.safe,
+                                  psafePassword = safePassword,
+                                  wait = True,
+                                  )
+        return True
+    # User doesn't have access so it might as well not exist
+    raise EntryDoesntExistError
+
+@rpcmethod(name = 'psafe.personal.setPsafePasswordByUUID', signature = ['boolean', 'string', 'string', 'int', 'string'])
+@auth
+def setPsafePasswordByUUID(username, password, safeUUID, safePassword, **kw):
+    """ Update the given user's personal psafe to include the password to the given safe.  
+    @param username: Requesting user's login
+    @type username: string
+    @param password: Requesting user's login
+    @type password: string
+    @param safeUUID: The database UUID of the safe that the password is for.  
+    @type safeUUID: int
+    @param safePassword: The password to use when decrypting the given psafe. 
+    @type safePassword: string
+    @return: boolean, True on success
+    @raise EntryDoesntExistError: The safe you are trying to save a password for doesn't exist or the requesting user doesn't have access to it.  
+    """
+    try:
+        ent = MemPsafeEntry.objects.get(uuid = safeUUID)
     except MemPsafeEntry.DoesNotExist:
         raise EntryDoesntExistError
     

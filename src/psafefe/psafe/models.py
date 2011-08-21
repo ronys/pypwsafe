@@ -237,6 +237,7 @@ class MemPSafe(models.Model):
         """ Return an XML-RPC safe dictionary of the data. Null 
         fields are deleted! """
         ret = {
+             'PK':self.pk,
              'UUID':self.uuid,
              'Name':self.dbName,
              'Description':self.dbDescription,
@@ -362,6 +363,7 @@ class MemPsafeEntry(models.Model):
         """ Return an XML-RPC safe dictionary of the data. Null 
         fields are deleted! """
         ret = {
+             'PK':self.pk,
              'UUID':self.uuid,
              'Group':self.group,
              'Title':self.title,
