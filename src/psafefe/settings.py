@@ -15,13 +15,19 @@
 #    You should have received a copy of the GNU General Public License
 #    along with PyPWSafe.  If not, see http://www.gnu.org/licenses/old-licenses/gpl-2.0.html 
 #===============================================================================
-# Django settings for psafefe project.
-
+""" Django settings for psafefe project.
+@warning: The settings below are for TESTING ONLY. Do NOT use them in production. 
+FIXME: Provide a template for production settings modules. 
+"""
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
+import djcelery
+djcelery.setup_loader()
+
 ADMINS = (
     # ('Your Name', 'your_email@example.com'),
+    ("Paulson McIntyre", "paul@gpmidi.net"),
 )
 
 MANAGERS = ADMINS
@@ -62,18 +68,18 @@ USE_L10N = True
 
 # Absolute filesystem path to the directory that will hold user-uploaded files.
 # Example: "/home/media/media.lawrence.com/media/"
-MEDIA_ROOT = ''
+MEDIA_ROOT = '/mnt/test/media/'
 
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
 # trailing slash.
 # Examples: "http://media.lawrence.com/media/", "http://example.com/media/"
-MEDIA_URL = ''
+MEDIA_URL = '/media/'
 
 # Absolute path to the directory static files should be collected to.
 # Don't put anything in this directory yourself; store your static files
 # in apps' "static/" subdirectories and in STATICFILES_DIRS.
 # Example: "/home/media/media.lawrence.com/static/"
-STATIC_ROOT = ''
+STATIC_ROOT = '/mnt/test/static/'
 
 # URL prefix for static files.
 # Example: "http://media.lawrence.com/static/"
@@ -119,11 +125,33 @@ MIDDLEWARE_CLASSES = (
 
 ROOT_URLCONF = 'psafefe.urls'
 
+TEMPLATE_CONTEXT_PROCESSORS = (
+                            "django.core.context_processors.auth",
+                            "django.core.context_processors.debug",
+                            "django.core.context_processors.i18n",
+                            "django.core.context_processors.media",
+                            'django.contrib.messages.context_processors.messages',
+                            'django.core.context_processors.request',
+                            'django.core.context_processors.static',
+                            )
+
 TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
+    '/mnt/test/stemplates/'
 )
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'unique-snowflake',
+        'TIMEOUT': 60 * 60 * 24,
+        'OPTIONS': {
+            'MAX_ENTRIES': 100000
+        },
+    }
+}
 
 INSTALLED_APPS = (
     'django.contrib.auth',
@@ -134,10 +162,14 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.humanize',
     'django.contrib.comments',
+    # Handy AJAX tools
     'dajaxice',
     'dajax',
+    # Async task exectuion
     'djcelery',
+    # Provide easy XML-RPC and JSON-RPC
     'rpc4django',
+    # Our code
     'psafefe.psafe',
 )
 
@@ -164,12 +196,11 @@ LOGGING = {
     }
 }
 
-# Celery
-CELERY_RESULT_BACKEND = "amqp"
-BROKER_HOST = "mem0.nh.gpmidi.net"
-BROKER_PORT = 5672
-BROKER_USER = "gpdev"
-BROKER_PASSWORD = "gpdev"
-BROKER_VHOST = "gpdev"
-CELERY_RESULT_PERSISTENT = False
+
+#             PSAFE Settings
+
+# Where a user's private psafe is stored. These safes allow a user to save
+# the passwords to other safes in a safe encrypted with their own password. 
+PSAFE_PERSONAL_PATH = "psafes_personal"
+
 
