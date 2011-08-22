@@ -162,6 +162,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.humanize',
     'django.contrib.comments',
+    'django.contrib.admin',
     # Handy AJAX tools
     'dajaxice',
     'dajax',
@@ -202,6 +203,8 @@ BROKER_USER = "gpdev"
 BROKER_PASSWORD = "bogus12345"
 BROKER_VHOST = "gpdev"
 CELERY_RESULT_BACKEND = "amqp"
+# Remove any task results after an hour. High volume sites may need to reduce this. 
+TASK_RESULT_EXPIRES = 1 * 60 * 60
 
 #            RPC4Django
 # Set these to true in high security env

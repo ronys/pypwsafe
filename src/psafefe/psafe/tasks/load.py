@@ -21,11 +21,71 @@ Created on Aug 16, 2011
 @author: Paulson McIntyre <paul@gpmidi.net>
 '''
 #from celery.task import task #@UnresolvedImport
-from celery.decorators import task #@UnresolvedImport
+from celery.decorators import task, periodic_task #@UnresolvedImport
 from psafefe.psafe.models import *
 from psafefe.psafe.errors import *
-from pypwsafe import PWSafe3
+from pypwsafe import PWSafe3, ispsafe3
 import stat
+from datetime import timedelta
+import os, os.path
+
+@periodic_task(run_every = timedelta(minutes = 10), ignore_result = True, expires = 3600)
+def findSafes(repoByName = None, repoByPK = None):
+    """ Walk the given repos (or all if repos=None) and find any new psafe files. 
+    @return: int, the number of new safes located
+    @param repoByName: A list of repos names to update. Use None to update all.  
+    @type repoByName: list of strings
+    @param repoByPK: A list of repos PKs to update. Use None to update all.  
+    @type repoByPK: list of ints
+    @note: Both repoByName and repoByPK must be None to update all. Otherwise the union of the two will be used. 
+    @note: Set to ignore result by default. Make sure to override this if you want a value.   
+    """
+    cnt = 0
+    repos = []
+    if repoByName:
+        repos += [PasswordSafeRepo.objects.filter(name = repo) for repo in repoByName]
+    if repoByPK:
+        repos += [PasswordSafeRepo.objects.filter(pk = repo) for repo in repoByPK]
+    if len(repos) == 0:
+        repos = PasswordSafeRepo.objects.all()
+    for repo in repos:
+        # Don't call as a task since we're already in one
+        # although you can in theory
+        cnt += findSafesInRepo(repo.pk)
+    return cnt
+
+@task(ignore_result = True, expires = 3600)
+def findSafesInRepo(repoPK):
+    """ Find all safes in the given repo and make sure there is a PasswordSafe object for it
+    @param repoPK: The PK of the repo to check
+    @type repoPK: int  
+    @return: int, the number of safes located
+    @note: Set to ignore result by default. Make sure to override this if you want a value.
+    """
+    repo = PasswordSafeRepo.objects.get(pk = repoPK)
+    cnt = 0
+    for (dirpath, dirnames, filenames) in os.walk(repo.path):
+        for filename in filenames:
+            ext = filename.split('.')[-1].lower()
+            if ext == "psafe3":
+                # Dont' just assume - validate! 
+                if ispsafe3(os.path.join(repo.path, dirpath, filename)):
+                    # Make sure it doesn't already exists in the DB
+                    if PasswordSafe.objects.filter(
+                                         filename = os.path.join(dirpath, filename),
+                                         repo = repo,
+                                         ).count() == 0:
+                        try:
+                            pws = PasswordSafe(
+                                             filename = os.path.join(dirpath, filename),
+                                             repo = repo,
+                                             )
+                            pws.save()
+                            cnt += 1
+                        except:
+                            pass
+                        
+    return cnt
 
 @task()
 def loadSafe(psafe_pk, password, force = False):
@@ -56,6 +116,10 @@ def loadSafe(psafe_pk, password, force = False):
                      password = password,
                      mode = "R",
                      )
+    # Make sure the main pws object's uuid is right
+    if pypwsafe.getUUID() != psafe.uuid:
+        psafe.uuid = pypwsafe.getUUID()
+        psafe.save()
     # Update/set attributes
     memPSafe.uuid = pypwsafe.getUUID()
     memPSafe.dbName = psafe.getDbName()

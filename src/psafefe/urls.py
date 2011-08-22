@@ -26,6 +26,8 @@ urlpatterns = patterns('',
     (r'^RPC2$', 'rpc4django.views.serve_rpc_request'),
     # Psafe site
     (r'^psafe(?:/)?', include('psafefe.psafe.urls')),
+    # Admin site
+    (r'^admin/', include(admin.site.urls)),
     # Account junk
 #    (r'^accounts/login(?:/)?$', 'django.contrib.auth.views.login', dict(redirect_field_name = '/index.html')),
 #    (r'^accounts/logout(?:/)?$', 'django.contrib.auth.views.logout_then_login'),
