@@ -32,6 +32,7 @@ import os
 import logging, logging.config
 from uuid import UUID, uuid4
 from pprint import pformat
+from binascii import unhexlify
 
 #logging.config.fileConfig('/etc/mss/psafe_log.conf')
 log = logging.getLogger("psafe.lib.header")
@@ -366,7 +367,10 @@ lastsave    time struct        Last save time of DB
 
     def parse(self):
         """Parse data"""
-        self.lastsave = time.gmtime(unpack('=i', self.data)[0])
+        time_data = self.data
+        if len(time_data) == 8:
+            time_data = unhexlify(time_data)
+        self.lastsave = time.gmtime(unpack('=i', time_data)[0])
 
     def __repr__(self):
         return "LastSave" + Header.__repr__(self)
