@@ -15,7 +15,11 @@
 #    You should have received a copy of the GNU General Public License
 #    along with PyPWSafe.  If not, see http://www.gnu.org/licenses/old-licenses/gpl-2.0.html 
 #===============================================================================
-''' Tasks to load/reload password safes into the cache
+''' Tasks to load/reload password safes into the cache. 
+All read-only activity is done async. All write activity
+is done sync to reduce the possibility of data loss or 
+conflicts. 
+
 Created on Aug 16, 2011
 
 @author: Paulson McIntyre <paul@gpmidi.net>

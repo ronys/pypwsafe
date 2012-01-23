@@ -16,6 +16,8 @@
 #    along with PyPWSafe.  If not, see http://www.gnu.org/licenses/old-licenses/gpl-2.0.html 
 #===============================================================================
 ''' Tasks to update/delete/create password entries and password safes
+All write activity is done syncronsialy to reduce the possibility of
+data loss and conflicts. 
 Created on Aug 16, 2011
 
 @author: Paulson McIntyre <paul@gpmidi.net>
