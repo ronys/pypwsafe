@@ -22,12 +22,9 @@ Created on Aug 16, 2011
 '''
 #from celery.task import task #@UnresolvedImport
 from celery.decorators import task #@UnresolvedImport
-from psafefe.psafe.models import *
-from psafefe.psafe.errors import *
+from psafefe.psafe.models import * #@UnusedWildImport
+from psafefe.psafe.errors import * #@UnusedWildImport
 from pypwsafe import PWSafe3, Record
-import stat
-from psafefe.psafe.models import *
-from psafefe.psafe.errors import *
 from psafefe.psafe.tasks.load import loadSafe
 import datetime
 from socket import getfqdn
