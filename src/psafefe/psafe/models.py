@@ -128,8 +128,12 @@ class PasswordSafe(models.Model):
         permissions = (
                        ('can_sync', 'Can sync individual safes'),
                        )
-        
-    uuid = models.CharField(
+    """ 
+    @ivar uuid: The password safe GUID as a UUID
+    @type uuid: A UUID as a string
+    @warning: This field WILL be incorrect if the safe has never been decrypted.    
+    """
+    uuid = models.CharField(    # FIXME: Should this be null=true for when the safe hasn't been decrypted?
                             # can't use as PK as two psafes may have the same uuid (yes, this *shouldn't* happen, but people use copy/paste to copy safes sometimes. )
                             # primary_key = True,
                             null = False,
@@ -140,12 +144,7 @@ class PasswordSafe(models.Model):
                             help_text = "Password Safe GUID",
                             editable = False,
                             )
-    """ 
-    @ivar uuid: The password safe GUID as a UUID
-    @type uuid: A UUID as a string
-    @warning: This field WILL be incorrect if the safe has never been decrypted.    
-    """
-    
+    # FIXME: Change this to a filepath field
     filename = models.CharField(
                                 # The system should note this safe as "missing" if it can't be found atm. 
                                 null = True,
