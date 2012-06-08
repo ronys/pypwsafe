@@ -1405,6 +1405,219 @@ A two byte field contain the value of the Double-Click Action 'preference
         #psafe_logger.debug("Serial to %s data %s"%(repr(ret),repr(self.data)))
         return ret
 
+class EmailAddressRecordProp(RecordProp):
+    """ Account email address field
+Separate Email address field as per RFC 2368 (without the 'mailto:'
+prefix. This field was introduced in version 0x0306 (PasswordSafe V3.19).
+
+    """
+    rTYPE = 0x14
+    rNAME = 'EmailAddress'
+
+    def __init__(self, ptype = None, plen = 0, pdata = None):
+        if not ptype:
+            ptype = self.rTYPE
+        assert ptype == self.rTYPE
+        if not pdata:
+            self.emailAddress = ''
+        else:
+            RecordProp.__init__(self, ptype, plen, pdata)
+
+    def parse(self):
+        self.emailAddress = self.data[:self.len]
+
+    def __repr__(self):
+        return self.rNAME + RecordProp.__repr__(self)
+
+    def __str__(self):
+        return self.rNAME + "=" + repr(self.emailAddress)
+
+    def get(self):
+        return self.emailAddress
+
+    def set(self, value):
+        self.emailAddress = str(value)
+
+    def serial(self):
+        #psafe_logger.debug("Serial to %s data %s"%(repr(self.url),repr(self.data)))
+        return self.emailAddress
+    
+class ProtectedEntryRecordProp(RecordProp):
+    """ Is the entry protected from being changed/deleted. 
+Entry is protected, i.e., the entry cannot be changed or deleted
+while this field is set. This field was introduced in version 0x0308
+(PasswordSafe V3.25).  This a single byte. An absent field or a zero
+valued field means that the entry is not protected. Any non-zero value
+means that the entry is protected.
+    """
+    rTYPE = 0x15
+    rNAME = 'ProtectedEntry'
+
+    def __init__(self, ptype = None, plen = 4, pdata = None, isProtected = False):
+        if not ptype:
+            ptype = self.rTYPE
+        assert ptype == self.rTYPE
+        if not pdata:
+            self.isProtected = isProtected
+        else:
+            RecordProp.__init__(self, ptype, plen, pdata)
+
+    def parse(self):
+        self.mydata = self.data[:self.len]
+        self.isProtected = int(unpack('=l', self.mydata)[0])
+
+    def __repr__(self):
+        return self.rNAME + RecordProp.__repr__(self)
+
+    def __str__(self):
+        return self.rNAME + "=" + repr(self.isProtected)
+
+    def get(self):
+        return self.isProtected
+
+    def set(self, value):
+        self.isProtected = bool(value)
+
+    def serial(self):
+        ret = pack('=l', self.isProtected)
+        #psafe_logger.debug("Serial to %s data %s"%(repr(ret),repr(self.data)))
+        return ret
+
+class SymbolsForPasswordRecordProp(RecordProp):
+    """ Symbols that can be used in randomly generated passwords. 
+Each entry can now specify its own set of allowed special symbols for
+password generation.  This overrides the default set and any database specific
+set. This field is mutually exclusive with the policy name field
+[0x18].  This was introduced in version 0x0309 (PasswordSafe V3.26).
+    """
+    rTYPE = 0x16
+    rNAME = 'SymbolsForPassword'
+
+    def __init__(self, ptype = None, plen = 0, pdata = None):
+        if not ptype:
+            ptype = self.rTYPE
+        assert ptype == self.rTYPE
+        if not pdata:
+            self.symbols = ''
+        else:
+            RecordProp.__init__(self, ptype, plen, pdata)
+
+    def parse(self):
+        self.symbols = self.data[:self.len]
+
+    def __repr__(self):
+        return self.rNAME + RecordProp.__repr__(self)
+
+    def __str__(self):
+        return self.rNAME + "=" + repr(self.symbols)
+
+    def get(self):
+        return self.symbols
+
+    def set(self, value):
+        self.symbols = str(value)
+
+    def serial(self):
+        #psafe_logger.debug("Serial to %s data %s"%(repr(self.url),repr(self.data)))
+        return self.symbols
+
+class ShiftDoubleClickActionRecordProp(RecordProp):
+    """ Shift Double click action 
+A two byte field contain the value of the Double-Click Action 'preference 
+390    value' (0xff means use the current Application default):
+391    Current 'preference values' are:
+392        CopyPassword           0
+393        ViewEdit               1
+394        AutoType               2
+395        Browse                 3
+396        CopyNotes              4
+397        CopyUsername           5
+398        CopyPasswordMinimize   6
+399        BrowsePlus             7
+
+
+    """
+    rTYPE = 0x17
+    rNAME = 'ShiftDoubleClickAction'
+
+    COPYPASSWORD = 0x00
+    VIEWEDIT = 0x01
+    AUTOTYPE = 0x02
+    BROWSE = 0x03
+    COPYNOTES = 0x04
+    COPYUSERNAME = 0x05
+    COPYPASSWORDMIN = 0x06
+    BROWSEPLUS = 0x07
+    DEFAULT = 0xff
+    def __init__(self, ptype = None, plen = 4, pdata = None, action = DEFAULT):
+        if not ptype:
+            ptype = self.rTYPE
+        assert ptype == self.rTYPE
+        if not pdata:
+            self.action = action
+        else:
+            RecordProp.__init__(self, ptype, plen, pdata)
+
+    def parse(self):
+        self.mydata = self.data[:self.len]
+        self.action = int(unpack('=l', self.mydata)[0])
+
+    def __repr__(self):
+        return self.rNAME + RecordProp.__repr__(self)
+
+    def __str__(self):
+        return self.rNAME + "=" + repr(self.action)
+
+    def get(self):
+        return self.action
+
+    def set(self, value):
+        self.action = int(value)
+
+    def serial(self):
+        ret = pack('=l', self.action)
+        #psafe_logger.debug("Serial to %s data %s"%(repr(ret),repr(self.data)))
+        return ret
+
+class PasswordPolicyNameRecordProp(RecordProp):
+    """ Password Policy Name 
+Each entry can now specify the name of a Password Policy saved in
+the database header for password generation. This field is mutually
+exclusive with the specific policy field [0x10] and with the Own
+symbols for password field [0x16]. This was introduced in version
+0x0311 (PasswordSafe V3.28).
+    """
+    rTYPE = 0x18
+    rNAME = 'PasswordPolicyName'
+
+    def __init__(self, ptype = None, plen = 0, pdata = None):
+        if not ptype:
+            ptype = self.rTYPE
+        assert ptype == self.rTYPE
+        if not pdata:
+            self.symbols = ''
+        else:
+            RecordProp.__init__(self, ptype, plen, pdata)
+
+    def parse(self):
+        self.symbols = self.data[:self.len]
+
+    def __repr__(self):
+        return self.rNAME + RecordProp.__repr__(self)
+
+    def __str__(self):
+        return self.rNAME + "=" + repr(self.symbols)
+
+    def get(self):
+        return self.symbols
+
+    def set(self, value):
+        self.symbols = str(value)
+
+    def serial(self):
+        #psafe_logger.debug("Serial to %s data %s"%(repr(self.url),repr(self.data)))
+        return self.symbols
+    
 class EOERecordProp(RecordProp):
     """End of entry
 
