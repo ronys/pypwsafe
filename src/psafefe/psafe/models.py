@@ -271,6 +271,7 @@ class MemPsafeEntry(models.Model):
     """ Represent a cached password safe entry """
     class Meta:        
         unique_together = (
+                           # TODO: Is this really a safe assumption?
                            ('safe', 'uuid'),
                            )
     safe = models.ForeignKey(
@@ -278,6 +279,7 @@ class MemPsafeEntry(models.Model):
                              null = False,
                              verbose_name = "Password Safe",
                              )
+    # FIXME: UUID field?
     uuid = models.CharField(
                             # can't use as PK as two psafes may have the same uuid
                             # primary_key = True,
