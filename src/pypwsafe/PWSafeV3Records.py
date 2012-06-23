@@ -34,6 +34,7 @@ from uuid import UUID, uuid4
 import datetime
 #logging.config.fileConfig('/etc/mss/psafe_log.conf')
 psafe_logger = logging.getLogger("psafe.lib.record")
+psafe_logger.setLevel(logging.DEBUG)     # FIXME: REMOVE ME
 psafe_logger.debug('initing')
 
 class Record(object):
@@ -1386,7 +1387,7 @@ A two byte field contain the value of the Double-Click Action 'preference
 
     def parse(self):
         self.mydata = self.data[:self.len]
-        self.action = int(unpack('=l', self.mydata)[0])
+        self.action = int(unpack('=H', self.mydata)[0])
 
     def __repr__(self):
         return self.rNAME + RecordProp.__repr__(self)
@@ -1401,7 +1402,7 @@ A two byte field contain the value of the Double-Click Action 'preference
         self.action = int(value)
 
     def serial(self):
-        ret = pack('=l', self.action)
+        ret = pack('=H', self.action)
         #psafe_logger.debug("Serial to %s data %s"%(repr(ret),repr(self.data)))
         return ret
 
@@ -1464,7 +1465,7 @@ means that the entry is protected.
 
     def parse(self):
         self.mydata = self.data[:self.len]
-        self.isProtected = int(unpack('=l', self.mydata)[0])
+        self.isProtected = int(self.mydata)
 
     def __repr__(self):
         return self.rNAME + RecordProp.__repr__(self)
@@ -1479,8 +1480,8 @@ means that the entry is protected.
         self.isProtected = bool(value)
 
     def serial(self):
-        ret = pack('=l', self.isProtected)
-        #psafe_logger.debug("Serial to %s data %s"%(repr(ret),repr(self.data)))
+        ret = str(self.isProtected)
+        psafe_logger.debug("Serial to %s data %s for %r" % (repr(ret), repr(self.data), self.__class__))
         return ret
 
 class SymbolsForPasswordRecordProp(RecordProp):
@@ -1560,7 +1561,7 @@ A two byte field contain the value of the Double-Click Action 'preference
 
     def parse(self):
         self.mydata = self.data[:self.len]
-        self.action = int(unpack('=l', self.mydata)[0])
+        self.action = int(unpack('=H', self.mydata)[0])
 
     def __repr__(self):
         return self.rNAME + RecordProp.__repr__(self)
@@ -1575,7 +1576,7 @@ A two byte field contain the value of the Double-Click Action 'preference
         self.action = int(value)
 
     def serial(self):
-        ret = pack('=l', self.action)
+        ret = pack('=H', self.action)
         #psafe_logger.debug("Serial to %s data %s"%(repr(ret),repr(self.data)))
         return ret
 

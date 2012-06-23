@@ -169,12 +169,13 @@ class PWSafe3(object):
         else:
             log.warn("Safe doesn't exist or can't read directory")
             raise AccessError, "No such safe %s" % filename
-        if psafe_exists:
-            log.debug("Loading existing safe")
+        if psafe_exists:            
             self.filename = filename
-            self.fl = open(self.filename, 'r')
+            log.debug("Loading existing safe from %r" % self.filename)
+            self.fl = open(self.filename, 'rb')
             try:
                 self.flfull = self.fl.read()
+                log.debug("Full data len: %d" % len(self.flfull))
                 self.password = str(password)
                 # Read in file
                 self.load()
@@ -311,6 +312,7 @@ class PWSafe3(object):
         HMAC    32    BIN
         """
         log.debug('Loading psafe')
+        log.debug('len: %d flful: %r' % (len(self.flfull[:152]), self.flfull[:152]))
         (self.tag, self.salt, self.iter, self.hpprime, self.b1b2, self.b3b4, self.iv) = unpack('4s32sI32s32s32s16s', self.flfull[:152])
         log.debug("Tag: %s" % repr(self.tag))
         log.debug("Salt: %s" % repr(self.salt))
@@ -323,13 +325,15 @@ class PWSafe3(object):
         (self.eof, self.hmac) = unpack('16s32s', self.flfull[-48:])
         log.debug("EOF: % s" % repr(self.eof))
         log.debug("HMAC: % s" % repr(self.hmac))
-        # Determin the password hash
+        # Determine the password hash
         self.update_pprime()
         # Verify password
         if not self.check_password():
             raise PasswordError
         # Figure out the encryption and hash session keys
+        log.debug("Calc'ing keys")
         self.calc_keys()
+        log.debug("Going to decrypt data")
         self.decrypt_data()
 
         # Parse headers
@@ -380,13 +384,16 @@ class PWSafe3(object):
         self.hshkey = tw.decrypt(self.b3b4)
         log.debug("Encryption key K: %s " % repr(self.enckey))
         log.debug("HMAC Key L: %s " % repr(self.hshkey))
-
+        
     def decrypt_data(self):
         """Decrypt encrypted portion of header and data"""
+        log.debug("Creating mcrypt object")
         tw = MCRYPT('twofish', 'cbc')
+        log.debug("Adding key & iv")
         tw.init(self.enckey, self.iv)
+        log.debug("Decrypting data")
         self.fulldata = tw.decrypt(self.cryptdata)
-
+                
     def encrypt_data(self):
         """Encrypted fulldata to cryptdata"""
         tw = MCRYPT('twofish', 'cbc')
@@ -397,13 +404,15 @@ class PWSafe3(object):
         """Returns the current hmac of self.fulldata"""
         data = ''
         for i in self.headers:
-            log.debug("Adding hmac data %s", repr(i.hmac_data()))
+            log.debug("Adding hmac data %r from %r" % (i.hmac_data(), i.__class__.__name__))
             if cached:
                 data += i.data
             else:
                 data += i.hmac_data()
+                #assert i.data == i.hmac_data(), "Working on %r where %r!=%r" % (i, i.data, i.hmac_data())
         for i in self.records:
-            log.debug("Adding hmac data %s", repr(i.hmac_data()))
+            # TODO: Add caching support
+            log.debug("Adding hmac data %r from %r" % (i.hmac_data(), i.__class__.__name__))
             data += i.hmac_data()
         log.debug("Building hmac with key %s", repr(self.hshkey))
         hm = HMAC(self.hshkey, data, sha256_mod)
