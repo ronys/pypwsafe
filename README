@@ -19,15 +19,15 @@ Deps:
 7) rpc4django (http://davidfischer.name/rpc4django/)
 
 Install Instructions
-1) Install libmcrypt and it's dev package: 
-	yum install libmcrypt-devel libmcrypt
+1) Install libmcrypt and it's dev package along with the Python dev package: 
+	yum install libmcrypt-devel libmcrypt python-devel
 	These packages are needed by the installer for python-mcrypt
-2) Use Pip or easy install to install python-mcrypt
-3) Run the setup script
+2) Install dev tools. For CentOS 5 and 6, `yum groupinstall 'Development tools'` can be used if your YUM repos have group information. 
+3) Use Pip or easy install to install python-mcrypt
+4) Run the setup script
 	python setup.py install
-4) Test that the module loads
+5) Test that the module loads
 	python -c "import pypwsafe"
-** FIXME: Fix install instructions
-
 
 Development Setup Instructions
+FIXME: Fill this in
