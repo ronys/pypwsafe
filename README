@@ -4,9 +4,9 @@ A pure-Python library that can read and write Password Safe v3 files has been re
 
 There are a few known issues: 
 
-1) Some of the more recent record properties aren't supported
-2) Lack of documentation
-3) Unit tests are out-of-date
+1) Lack of documentation
+2) Unit tests are out-of-date
+3) There MAY be an issue with the order that NonDefaultPrefsHeader serializes prefs for HMAC validation. 
 
 Deps: 
 1) python-mcrypt
