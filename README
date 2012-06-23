@@ -23,7 +23,7 @@ Install Instructions
 	yum install libmcrypt-devel libmcrypt python-devel
 	These packages are needed by the installer for python-mcrypt
 2) Install dev tools. For CentOS 5 and 6, `yum groupinstall 'Development tools'` can be used if your YUM repos have group information. 
-3) Use Pip or easy install to install python-mcrypt
+3) Use Pip or easy install to install python-mcrypt and hashlib
 4) Run the setup script
 	python setup.py install
 5) Test that the module loads
