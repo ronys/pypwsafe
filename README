@@ -1,4 +1,4 @@
-A pure-Python library that can read and write Password Safe v3 files has been released under the GPLv2 by Symantec. 
+A pure-Python library that can read and write Password Safe v3 files. The library was initially released by Symantec under the GPLv2 in 2011. 
 
 
 
@@ -6,7 +6,8 @@ There are a few known issues:
 
 1) Lack of documentation
 2) Unit tests are out-of-date
-3) There MAY be an issue with the order that NonDefaultPrefsHeader serializes prefs for HMAC validation. 
+3) There MAY be an issue with the order that NonDefaultPrefsHeader serializes prefs for HMAC validation.
+4) The version of python-mcrypt for Windows isn't compatible with this library. As a result, this library doesn't work in Windows. If anyone is able to get around this, please notify us. The library has not been tried under Cygwin.   
 
 Deps: 
 1) python-mcrypt
@@ -18,7 +19,7 @@ Deps:
 6) jQuery (http://jquery.com/)
 7) rpc4django (http://davidfischer.name/rpc4django/)
 
-Install Instructions
+Linux Install Instructions
 1) Install libmcrypt and it's dev package along with the Python dev package: 
 	yum install libmcrypt-devel libmcrypt python-devel
 	These packages are needed by the installer for python-mcrypt
