@@ -1,26 +1,34 @@
-A pure-Python library that can read and write Password Safe v3 files has been released under the GPLv2 by Symantec. 
+A pure-Python library that can read and write Password Safe v3 files. The library was initially released by Symantec under the GPLv2 in 2011. 
 
 
 
 There are a few known issues: 
 
-1) HMAC validation fails with some recent versions of Password Safe. I suspect this is an issue with the support for bug 1812081. 
-2) Some of the more recent record properties aren't supported
-3) Lack of documentation
-4) Unit tests are out-of-date
-5) Need to add an install script
+1) Lack of documentation
+2) Unit tests are out-of-date
+3) There MAY be an issue with the order that NonDefaultPrefsHeader serializes prefs for HMAC validation.
+4) The version of python-mcrypt for Windows isn't compatible with this library. As a result, this library doesn't work in Windows. If anyone is able to get around this, please notify us. The library has not been tried under Cygwin.   
 
 Deps: 
 1) python-mcrypt
 2) hashlib
+** Below is only required for Django FE & RPC layer **
+3) Django 1.3 (http://www.djangoproject.com)
+4) Dajaxice (http://www.dajaxproject.com/)
+5) Dajax (http://www.dajaxproject.com/)
+6) jQuery (http://jquery.com/)
+7) rpc4django (http://davidfischer.name/rpc4django/)
 
-Install Instructions
-1) Install libmcrypt and it's dev package: 
-	yum install libmcrypt-devel libmcrypt
-	These packages are needed by 
-2) Use Pip or easy install to install python-mcrypt
-3) Run the setup script
+Linux Install Instructions
+1) Install libmcrypt and it's dev package along with the Python dev package: 
+	yum install libmcrypt-devel libmcrypt python-devel
+	These packages are needed by the installer for python-mcrypt
+2) Install dev tools. For CentOS 5 and 6, `yum groupinstall 'Development tools'` can be used if your YUM repos have group information. 
+3) Use Pip or easy install to install python-mcrypt, hashlib, and pycrypto
+4) Run the setup script
 	python setup.py install
-4) Test that the module loads
+5) Test that the module loads
 	python -c "import pypwsafe"
-	
+
+Development Setup Instructions
+FIXME: Fill this in

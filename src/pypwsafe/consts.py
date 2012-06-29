@@ -16,10 +16,13 @@
 #    You should have received a copy of the GNU General Public License
 #    along with PyPWSafe.  If not, see http://www.gnu.org/licenses/old-licenses/gpl-2.0.html 
 #===============================================================================
-''' PSafe constants
-Created on Oct 27, 2010
+''' Useful constants 
 
-@author: mcintyrep
+@author: Paulson McIntyre <paul@gpmidi.net>
+@license: GPLv2
+@version: 0.1
+
+Created on Oct 27, 2010
 '''
 
 #                Configuration options

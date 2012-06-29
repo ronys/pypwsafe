@@ -17,16 +17,11 @@
 #    You should have received a copy of the GNU General Public License
 #    along with PyPWSafe.  If not, see http://www.gnu.org/licenses/old-licenses/gpl-2.0.html 
 #===============================================================================
-"""Header objects for psafe v03
-
-# Other header types we don't handle yet
-, Header(2,23,'\x17\x00\x00\x00\x02B 28 1 B 29 1 I 12 255 k\xd6\xa9*')
-, Header(3,4,'\x04\x00\x00\x00\x031111J\xa9\x8a\xbd\x15Ou')
-, Header(4,4,'\x04\x00\x00\x00\x04\xf1\x9fpId\xfbeb\xff[\x9a')
-, Header(7,16,'\x10\x00\x00\x00\x07paulson_mcintyre\xa7\xcd\x90\x03nx0\xf7{\xd4\x8a')
-, Header(8,9,'\t\x00\x00\x00\x08L-LV01203\xd1\x12')
-, Header(6,19,'\x13\x00\x00\x00\x06Password Safe V3.11\xc3\n\x85\x93\x95\x82z\t')
-
+""" Header objects for psafe v3
+ 
+@author: Paulson McIntyre <paul@gpmidi.net>
+@license: GPLv2
+@version: 0.1
 """
 # Note: Use "=" in all packs to account for 64bit systems
 
@@ -50,6 +45,8 @@ class _HeaderType(type):
         super(_HeaderType, cls).__init__(name, bases, dct)
         # Skip any where TYPE is none, such as the base class
         if cls.TYPE:
+            # Make sure no type ids are duplicated
+            assert not headers.has_key(cls.TYPE)
             headers[cls.TYPE] = cls
 
 class Header(object):
@@ -175,13 +172,16 @@ DHeader(1,16,'\x10\x00\x00\x00\x01\xbdV\x92{H\xdbL\xec\xbb+\xe90w5\x17\xa2P6b\xe
     """
     TYPE = 0x01
 
-    def __init__(self, htype = None, hlen = 16, raw_data = None):
+    def __init__(self, htype = None, hlen = 16, raw_data = None, uuid = None):
         if not htype:
             htype = self.TYPE
         if raw_data:
             Header.__init__(self, htype, hlen, raw_data)
         else:
-            self.uuid = uuid4()
+            if uuid:
+                self.uuid = uuid
+            else:
+                self.uuid = uuid4()
 
     def parse(self):
         """Parse data"""
@@ -548,9 +548,15 @@ dbDesc        String
     def serial(self):
         return self.dbDesc
 
+# FIXME: Finish this
 #class DBFiltersHeader(Header):
 #    """ Description of the database
 #dbDesc        String
+#Specfic filters for this database.  This is the text equivalent to
+#the XML export of the filters as defined by the filter schema. The text 
+#'image' has no 'print formatting' e.g. tabs and carraige return/line feeds,
+#since XML processing does not require this. This field was introduced in 
+#format version 0x0305.
 #    """
 #    TYPE = 0x0b
 #
@@ -577,10 +583,19 @@ dbDesc        String
     
 # TODO: Figure out what "reserved" headers are used for in other apps
 
-# TODO: Fill this in once we have something to test against 
+# TODO: Fill this in once we have something to test against
+# FIXME: Finish this 
 #class RecentEntriesHeader(Header):
 #    """ Description of the database
 #recentEntries        List of UUIDs
+#
+#A list of the UUIDs (32 hex character representation of the 16 byte field)
+#of the recently used entries, prefixed by a 2 hex character representation
+#of the number of these entries (right justified and left filled with zeroes).
+#The size of the number of entries field gives a maximum number of entries of 255,
+#however the GUI may impose further restrictions e.g. Windows MFC UI limits this
+#to 25. The first entry is the most recent entry accessed. This field was
+#introduced in format version 0x0307.
 #    """
 #    TYPE = 0x0f
 #
@@ -603,7 +618,7 @@ dbDesc        String
 #        return "RecentEntriesHeader(%r)" % self.recentEntries
 #
 #    def serial(self):
-#        return self.dbDesc    
+#        return ','.join(self.recentEntries)    
 
 class EOFHeader(Header):
     """End of headers

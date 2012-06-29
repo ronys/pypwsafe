@@ -257,6 +257,9 @@ A CLI interface for viewing Password Safe files.
     
     if opts.debug:
         logger.setLevel(logging.DEBUG)
+        pws.log.setLevel(logging.DEBUG)
+        logging.getLogger("psafe.lib.record").setLevel(logging.DEBUG)
+        logging.getLogger("psafe.lib.header").setLevel(logging.DEBUG)
     
     # Handle filename as first arg
     if not opts.filename:
