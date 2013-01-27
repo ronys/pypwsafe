@@ -1,16 +1,34 @@
-A pure-Python library that can read and write Password Safe v3 files. The library was initially released by Symantec under the GPLv2 in 2011. 
+Introduction
+============
+A pure-Python library that can read and write Password Safe v3 
+files. It includes support for 
 
-There are a few known issues: 
+History
+=======
+The library was initially written by Paulson McIntyre for
+Symantec in 2009. It was later released by Symantec under the 
+GPLv2 in 2011. Changes and updates have been made since by Paulson
+McIntyre (GpMidi), Evan Deaubl (evandeaubl), and Sean Perry (shaleh).
+Rony Shapiro maintains the project page and acts as gate keeper
+for new patches.   
+
+Known Issues
+============ 
 	1) Lack of documentation
 	2) Unit tests are out-of-date
 	3) There MAY be an issue with the order that NonDefaultPrefsHeader serializes preferences for HMAC validation in pypwsafe. Although the library validates HMACs fine at the moment, so who knows. 
 	4) The version of python-mcrypt for Windows isn't compatible with this library. As a result, the pypwsafe library doesn't work in Windows. If anyone is able to get around this, please notify us. The library has not been tried under Cygwin.    
 	 
-Dependencies: 
+Dependencies
+============
 	1) python-mcrypt
 	2) hashlib OR pycrypto
 
-RHEL/CentOS Install Instructions
+Install Instructions
+====================
+
+RHEL/CentOS
+-----------
 	1) Install libmcrypt and it's dev package along with the Python dev package: 
 		yum install libmcrypt-devel libmcrypt python-devel
 		These packages are needed by the installer for python-mcrypt
@@ -20,11 +38,19 @@ RHEL/CentOS Install Instructions
 		python setup.py install
 	5) Test that the module loads
 		python -c "import pypwsafe"
+
+Windows
+-------
+Windows is not currently supported due to issues with python-mcrypt. A
+pure-Python Twofish implementation will allow future support, if a bit
+slower than a C-based implementation. 
 	
 Development Setup Instructions
+------------------------------
 FIXME: Fill this in
 
 FAQ
+===
 	Q: Why mcrypt and not use pyCrypto?
 	A: The pyCrypto library doesn't support TwoFish, which is a newer cipher based on Blowfish. Twofish is required to encrypt/decrypt Password Safe v3 files.  
 
@@ -32,6 +58,7 @@ FAQ
 	A: http://passwordsafe.git.sourceforge.net/git/gitweb.cgi?p=passwordsafe/pwsafe.git;a=blob_plain;f=pwsafe/pwsafe/docs/formatV3.txt;hb=HEAD or go to the password safe code base and check in /pwsafe/pwsafe/docs/formatV3.txt. 
 	
 TODO
+====
 	1) Add support for using a pure-python TwoFish algorithm if mcrypt doesn't work.
 	   a) http://code.google.com/p/python-keysafe/source/browse/crypto/twofish.py
 	   b) http://www.bjrn.se/code/twofishpy.txt 
