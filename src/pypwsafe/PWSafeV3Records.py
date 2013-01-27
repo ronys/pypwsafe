@@ -37,6 +37,8 @@ psafe_logger = logging.getLogger("psafe.lib.record")
 psafe_logger.setLevel(logging.DEBUG)     # FIXME: REMOVE ME
 psafe_logger.debug('initing')
 
+RecordPropTypes = {}
+
 class Record(object):
     """Represents a psafe3 record
     Container item: Name of properity
@@ -132,43 +134,61 @@ class Record(object):
     def getGroup(self):
         return self['Group']
     
-    def setGroup(self, group):
+    def setGroup(self, group, updateEntryModified = True):
+        if updateEntryModified:
+            self.setEntryModified(datetime.datetime.now())
         self['Group'] = group
     
     def getTitle(self):
         return self['Title']
     
-    def setTitle(self, title):
+    def setTitle(self, title, updateEntryModified = True):
+        if updateEntryModified:
+            self.setEntryModified(datetime.datetime.now())
         self['Title'] = title
     
     def getUsername(self):
         return self['Username']
     
-    def setUsername(self, username):
+    def setUsername(self, username, updateEntryModified = True):
+        if updateEntryModified:
+            self.setEntryModified(datetime.datetime.now())
         self['Username'] = username
     
     def getPassword(self):
         return self['Password']
     
-    def setPassword(self, password):
+    def setPassword(self, password, updatePWModified = True, updateEntryModified = True, addToHistory = True):        
+        if updatePWModified:
+            self.setPasswordModified(datetime.datetime.now())
+        if updateEntryModified:
+            self.setEntryModified(datetime.datetime.now())
+        if addToHistory:
+            self.appendHistory(self.getPassword(), datetime.datetime.now())
         self['Password'] = password
     
     def getUUID(self):
         return self['UUID']
     
-    def setUUID(self, uuid):
+    def setUUID(self, uuid, updateEntryModified = True):
+        if updateEntryModified:
+            self.setEntryModified(datetime.datetime.now())
         self['UUID'] = uuid
     
     def getNote(self):
-        return self['Note']
+        return self['Notes']
     
-    def setNote(self, note):
-        self['Note'] = note
+    def setNote(self, note, updateEntryModified = True):
+        if updateEntryModified:
+            self.setEntryModified(datetime.datetime.now())
+        self['Notes'] = note
     
     def getCreated(self):
         return datetime.datetime(*self['ctime'][:6])
     
-    def setCreated(self, created):
+    def setCreated(self, created, updateEntryModified = True):
+        if updateEntryModified:
+            self.setEntryModified(datetime.datetime.now())
         self['ctime'] = created.timetuple()
         
     def getPasswordModified(self):
@@ -192,24 +212,30 @@ class Record(object):
     def getExpires(self):
         return datetime.datetime(*self['PasswordExpiry'][:6])
     
-    def setExpires(self, expires):
+    def setExpires(self, expires, updateEntryModified = True):
+        if updateEntryModified:
+            self.setEntryModified(datetime.datetime.now())
         self['PasswordExpiry'] = expires.timetuple()
         
     def getURL(self):
         return self['URL']
     
-    def setURL(self, url):
+    def setURL(self, url, updateEntryModified = True):
+        if updateEntryModified:
+            self.setEntryModified(datetime.datetime.now())
         self['URL'] = url
     
     def getAutoType(self):
-        return self['AutoType']
+        return self['Autotype']
     
-    def setAutoType(self, autotype):
-        self['AutoType'] = autotype
+    def setAutoType(self, autotype, updateEntryModified = True):
+        if updateEntryModified:
+            self.setEntryModified(datetime.datetime.now())
+        self['Autotype'] = autotype
         
     def getHistory(self):
         ret = []
-        for tm, passwd in self['History']:
+        for tm, passwd in self['PasswordHistory']['history'].items():
             ret.append(dict(
                             password = passwd,
                             saved = datetime.datetime(*tm[:6]),
@@ -218,12 +244,10 @@ class Record(object):
         return ret
     
     def _find_hist(self):
-        if self.lk.has_key("History"):
-            return self.lk['History']
-        else:
-            for i in RecordPropTypes.values():
-                if i.rNAME == "History":
-                    return i
+        if not self.lk.has_key("PasswordHistory"):
+            self["PasswordHistory"] = dict(enabled=True,maxsize=254,history=[])
+        if self.lk.has_key("PasswordHistory"):
+            return self.lk['PasswordHistory']
 
     def appendHistory(self, oldpw, dt = datetime.datetime.now()):
         history = self._find_hist()
@@ -237,19 +261,118 @@ class Record(object):
     def getRunCommand(self):
         return self['RunCommand']
     
-    def setRunCommand(self, cmd):
+    def setRunCommand(self, cmd, updateEntryModified = True):
+        if updateEntryModified:
+            self.setEntryModified(datetime.datetime.now())
         self['RunCommand'] = cmd
     
     def getEmail(self):
-        # FIXME: Need to implement
-        return None
+        return self['EmailAddress']
     
-    def setEmail(self, email):
-        # FIXME: Need to implement
-        pass
+    def setEmail(self, email, updateEntryModified = True):
+        if updateEntryModified:
+            self.setEntryModified(datetime.datetime.now())
+        self['EmailAddress'] = email
     
-RecordPropTypes = {}
-
+    def getPwdPolicy(self):
+        return self['PasswordPolicy']
+    
+    def setPwdPolicy(self, UseLower, UseUpper, UseDigits, UseSymbols, UseHex, UseEasy, MakePronounceable, TotalLen, MinLower, MinUpper, MinDigits, MinSymbols, updateEntryModified = True):
+        if updateEntryModified:
+            self.setEntryModified(datetime.datetime.now())
+        self['PasswordPolicy'] = dict(
+                                    UseLower = UseLower,
+                                    UseUpper = UseUpper,
+                                    UseDigits = UseDigits,
+                                    UseSymbols = UseSymbols,
+                                    UseHex = UseHex,
+                                    UseEasy = UseEasy,
+                                    MakePronounceable = MakePronounceable,
+                                    TotalLen = TotalLen,
+                                    MinLower = MinLower,
+                                    MinUpper = MinUpper,
+                                    MinDigits = MinDigits,
+                                    MinSymbols = MinSymbols,
+                                    )
+    
+    def getPasswordExpiryInterval(self):
+        return self['PasswordExpiryInterval']
+    
+    def setPasswordExpiryInterval(self, days, updateEntryModified = True):
+        if updateEntryModified:
+            self.setEntryModified(datetime.datetime.now())
+        self['PasswordExpiryInterval'] = days
+    
+    def getDoubleClickAction(self):
+        return self['DoubleClickAction']
+    
+    def setDoubleClickAction(self, action, updateEntryModified = True):
+        if updateEntryModified:
+            self.setEntryModified(datetime.datetime.now())
+        self['DoubleClickAction'] = action
+        
+    def getProtectedEntry(self):
+        return self['ProtectedEntry']
+    
+    def setProtectedEntry(self, protected, updateEntryModified = True):
+        if updateEntryModified:
+            self.setEntryModified(datetime.datetime.now())
+        self['ProtectedEntry'] = bool(protected)
+    
+    def getSymbolsForPassword(self):
+        return self['SymbolsForPassword']
+    
+    def setSymbolsForPassword(self, symbols, updateEntryModified = True):
+        if updateEntryModified:
+            self.setEntryModified(datetime.datetime.now())
+        self['SymbolsForPassword'] = symbols
+    
+    def getShiftDoubleClickAction(self):
+        return self['ShiftDoubleClickAction']
+    
+    def setShiftDoubleClickAction(self, action, updateEntryModified = True):
+        if updateEntryModified:
+            self.setEntryModified(datetime.datetime.now())
+        self['ShiftDoubleClickAction'] = action
+    
+    def getPasswordPolicyName(self):
+        return self['PasswordPolicyName']
+    
+    def setPasswordPolicyName(self, name, updateEntryModified = True):
+        if updateEntryModified:
+            self.setEntryModified(datetime.datetime.now())
+        self['PasswordPolicyName'] = name
+    
+    def todict(self):
+        """ Returns the entry as a json seralizable dict
+        WARNING: May have binary data in strings. 
+        """
+        ret = {
+             'UUID':str(self.getUUID()),
+             'Group':'.'.join(self.getGroup()),
+             'Title':self.getTitle(),
+             'Username':self.getUsername(),
+             'Notes':self.getNote(),
+             'Password':self.getPassword(),
+             'Creation Time':str(self.getCreated()),
+             'Password Last Modified':str(self.getPasswordModified()),
+             'Expires':str(self.getExpires()),
+             'Entry Last Modified':str(self.getEntryModified()),
+             'URL':self.getURL(),
+             'Autotype':self.getAutoType(),
+             'History':self.getHistory(),
+             'Password Policy':self.getPwdPolicy(),
+             'Password Expiry Interval (Days)':self.getPasswordExpiryInterval(),
+             'Double Click Action':self.getDoubleClickAction(),
+             'Email Address':self.getEmail(),
+             'Protected Entry':self.getProtectedEntry(),
+             'Password Symbols':self.getSymbolsForPassword(),
+             'Shift Double Click Action':self.getShiftDoubleClickAction(),
+             'Password Policy Name':self.getPasswordPolicyName(),
+             }
+        
+        return ret
+    
 class _RecordPropType(type):
     def __init__(cls, name, bases, dct):
         super(_RecordPropType, cls).__init__(name, bases, dct)
@@ -259,7 +382,7 @@ class _RecordPropType(type):
 
 #     Record Prop
 class RecordProp(object):
-    """A single properity of a psafe3 record. This represents an unknown type or is overridden by records of a known type.
+    """A single property of a psafe3 record. This represents an unknown type or is overridden by records of a known type.
     rTYPE        int        Properity type. May be null.
     rNAME        string        Code name of properity type.
     type        int        Prop type.
@@ -962,6 +1085,8 @@ where:
     rTYPE = 0x0f
     rNAME = 'PasswordHistory'
 
+    history = []
+    
     def __init__(self, ptype = None, plen = 0, pdata = None, enabled = 0, maxsize = 255):
         if not ptype:
             ptype = self.rTYPE
@@ -1442,7 +1567,7 @@ prefix. This field was introduced in version 0x0306 (PasswordSafe V3.19).
     def serial(self):
         #psafe_logger.debug("Serial to %s data %s"%(repr(self.url),repr(self.data)))
         return self.emailAddress
-    
+
 class ProtectedEntryRecordProp(RecordProp):
     """ Is the entry protected from being changed/deleted. 
 Entry is protected, i.e., the entry cannot be changed or deleted
@@ -1618,7 +1743,7 @@ symbols for password field [0x16]. This was introduced in version
     def serial(self):
         #psafe_logger.debug("Serial to %s data %s"%(repr(self.url),repr(self.data)))
         return self.symbols
-    
+
 class EOERecordProp(RecordProp):
     """End of entry
 
