@@ -8,8 +8,7 @@ There are a few known issues:
 	 
 Dependencies: 
 	1) python-mcrypt
-	2) hashlib
-	3) pycrypto
+	2) hashlib OR pycrypto
 
 RHEL/CentOS Install Instructions
 	1) Install libmcrypt and it's dev package along with the Python dev package: 
@@ -27,13 +26,13 @@ FIXME: Fill this in
 
 FAQ
 	Q: Why mcrypt and not use pyCrypto?
-	A: The pyCrypto library doesn't support TwoFish, which is a newer cipher based on Blowfish. Twofish is required to encrypt/decrypt Password Safe files.  
+	A: The pyCrypto library doesn't support TwoFish, which is a newer cipher based on Blowfish. Twofish is required to encrypt/decrypt Password Safe v3 files.  
 
 	Q: Where can I find details on the Password Safe file format?
 	A: http://passwordsafe.git.sourceforge.net/git/gitweb.cgi?p=passwordsafe/pwsafe.git;a=blob_plain;f=pwsafe/pwsafe/docs/formatV3.txt;hb=HEAD or go to the password safe code base and check in /pwsafe/pwsafe/docs/formatV3.txt. 
 	
 TODO
-	1) Add support for using a pure-python twofish algorithm (http://code.google.com/p/python-keysafe/source/browse/crypto/twofish.py) if mcrypt doesn't work. 
+	1) Add support for using a pure-python TwoFish algorithm if mcrypt doesn't work.
+	   a) http://code.google.com/p/python-keysafe/source/browse/crypto/twofish.py
+	   b) http://www.bjrn.se/code/twofishpy.txt 
 	2) Need to update against the latest version of the official psafe format v3 doc.
-
- 
