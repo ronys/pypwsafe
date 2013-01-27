@@ -54,9 +54,10 @@ FAQ
 ### Why mcrypt and not use PyCrypto?
 The pyCrypto library doesn't support TwoFish, which is a newer cipher based on Blowfish. Twofish is required to encrypt/decrypt Password Safe v3 files.  
 
-
 ### Where can I find details on the Password Safe file format?
-http://passwordsafe.git.sourceforge.net/git/gitweb.cgi?p=passwordsafe/pwsafe.git;a=blob_plain;f=pwsafe/pwsafe/docs/formatV3.txt;hb=HEAD or go to the password safe code base and check in /pwsafe/pwsafe/docs/formatV3.txt. 
+The format spec is kept in the Password Safe project's SVN repo. Go 
+to the password safe code base and check in /pwsafe/pwsafe/docs/formatV3.txt.
+As of today, it can be found [here](http://sourceforge.net/p/passwordsafe/code/5210/tree/trunk/pwsafe/pwsafe/docs/) 
 	
 TODO
 ====
