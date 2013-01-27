@@ -1,0 +1,150 @@
+{| class="wikitable"
++Database Headers
+!Name
+!Value
+!Type
+!PWS Version
+!PyPWSafe Support
+!Comments
+|-
+|Version
+|0x00
+|2 Bytes
+|Y
+|Y
+|Schema version
+|-
+|UUID
+|0x01
+|UUID
+|Y
+|Y
+|
+|-
+|Non-default preferences
+|0x02
+|Text
+|Y
+|Y
+|
+|-
+|Tree Display Status
+|0x03
+|Text
+|Y
+|Y
+|
+|-
+|Timestamp of last save
+|0x04
+|time_t
+|Y
+|Y
+|
+|-
+|Who performed last save
+|0x05
+|Text
+|Deprecated
+|Y
+|Deprecated as of 0x0302. PyPWSafe will read this tag and has write support for it. It will automatically convert it to the current header type. 
+|-
+|What performed last save
+|0x06
+|Text
+|Y
+|Y
+|
+|-
+|Last saved by user
+|0x07
+|Text
+|Y
+|Y
+|
+|-
+|Last saved on host 
+|0x08
+|Text
+|Y
+|Y
+|
+|-
+|Database Name
+|0x09
+|Text
+|Y
+|Y
+|
+|-
+|Database Description
+|0x0a
+|Text
+|Y
+|Y
+|
+|-
+|Database Filters
+|0x0b
+|Text
+|Y
+|Y
+|
+|-
+|Reserved
+|0x0c
+|n/a
+|Y
+|Y
+|
+|-
+|Reserved
+|0x0d
+|n/a
+|Y
+|Y
+|
+|-
+|Reserved
+|0x0e
+|n/a
+|Y
+|Y
+|
+|-
+|Recently Used Entries
+|0x0f
+|Text
+|Y
+|Y
+|
+|-
+|Named Password Policies
+|0x10
+|Text
+|Y
+|Y
+|
+|-
+|Empty Groups
+|0x11
+|Text
+|Y
+|Y
+|
+|-
+|Reserved
+|0x12
+|Text
+|Y
+|Y
+|
+|-
+|End of Entry
+|0xff
+|[Empty]
+|Y
+|Y
+|Must be last
+|}
+

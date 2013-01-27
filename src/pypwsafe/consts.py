@@ -24,12 +24,47 @@
 
 Created on Oct 27, 2010
 '''
-
+# Default special chars
+DEFAULT_SPECIAL_CHARS = "+-=_@#$%^&;:,.<>/~\\[](){}?!|"
+DEFAULT_EASY_SPECIAL_CHARS = "+-=_@#$%^<>/~\\?"
+ 
 #                Configuration options
+
+# Double click and shift double clickactions
+click_actions = dict(
+                 DoubleClickCopyPassword = 0,
+                 DoubleClickViewEdit = 1,
+                 DoubleClickAutoType = 2,
+                 DoubleClickBrowse = 3,
+                 DoubleClickCopyNotes = 4,
+                 DoubleClickCopyUsername = 5,
+                 DoubleClickCopyPasswordMinimize = 6,
+                 DoubleClickBrowsePlus = 7,
+                 DoubleClickRun = 8,
+                 DoubleClickSendEmail = 9,
+                 )
+
 #            Configuration Statics
 ptApplication = 0
 ptDatabase = 1
 ptObsolete = 2
+
+# File format version format
+version_map = {
+               "PasswordSafe V3.01":0x0300,
+               "PasswordSafe V3.03":0x0301,
+               "PasswordSafe V3.09":0x0302,
+               "PasswordSafe V3.12":0x0303,
+               "PasswordSafe V3.13":0x0304,
+               "PasswordSafe V3.14":0x0305,
+               "PasswordSafe V3.19":0x0306,
+               "PasswordSafe V3.22":0x0307,
+               "PasswordSafe V3.25":0x0308,
+               "PasswordSafe V3.26":0x0309,
+               "PasswordSafe V3.28":0x030A,
+               "PasswordSafe V3.29":0x030B,
+               "PasswordSafe V3.29Y":0x030C,
+               }
 
 #            Bools
 conf_bools = {
@@ -403,6 +438,21 @@ conf_bools = {
         'name':'HideSystemTray',
         'index':52
     },
+              
+    'UsePrimarySelectionForClipboard':{
+        'default':False,
+        'type':ptApplication,
+        'name':'UsePrimarySelectionForClipboard',
+        'index':53
+    },
+              
+    'CopyPasswordWhenBrowseToURL':{
+        'default':False,
+        'type':ptDatabase,
+        'name':'CopyPasswordWhenBrowseToURL',
+        'index':54
+    },
+    
 }
 
 #            Ints
@@ -604,6 +654,15 @@ conf_ints = {
         'max':-1,
         'index':21,
     },
+             
+    'ShiftDoubleClickAction':{
+        'name':'ShiftDoubleClickAction',
+        'default':click_actions['DoubleClickCopyUsername'],
+        'type':ptApplication,
+        'min':click_actions['DoubleClickCopyPassword'],
+        'max':click_actions['DoubleClickSendEmail'],
+        'index':22,
+    },
 }
 
 #            Strings
@@ -747,6 +806,21 @@ conf_strs = {
         'type':ptApplication,
         'index':19,
     },
+
+    'LanguageFile':{
+        'name':'LanguageFile',
+        'default':'',
+        'type':ptApplication,
+        'index':20,
+    },
+
+    'DefaultSymbols':{
+        'name':'DefaultSymbols',
+        'default':'',
+        'type':ptDatabase,
+        'index':21,
+    },
+
 }
 
 #           Type Mappings
