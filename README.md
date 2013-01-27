@@ -14,29 +14,29 @@ for new patches.
 
 Known Issues
 ============ 
- 1) Lack of documentation
- 2) Unit tests are out-of-date
- 3) There MAY be an issue with the order that NonDefaultPrefsHeader serializes preferences for HMAC validation in pypwsafe. Although the library validates HMACs fine at the moment, so who knows. 
- 4) The version of python-mcrypt for Windows isn't compatible with this library. As a result, the pypwsafe library doesn't work in Windows. If anyone is able to get around this, please notify us. The library has not been tried under Cygwin.    
+ 1. Lack of documentation
+ 2. Unit tests are out-of-date
+ 3. There MAY be an issue with the order that NonDefaultPrefsHeader serializes preferences for HMAC validation in pypwsafe. Although the library validates HMACs fine at the moment, so who knows. 
+ 4. The version of python-mcrypt for Windows isn't compatible with this library. As a result, the pypwsafe library doesn't work in Windows. If anyone is able to get around this, please notify us. The library has not been tried under Cygwin.    
 	 
 Dependencies
 ============
- 1) python-mcrypt
- 2) hashlib OR pycrypto
+ 1. python-mcrypt
+ 2. hashlib OR pycrypto
 
 Install Instructions
 ====================
 
 RHEL/CentOS
 -----------
- 1) Install libmcrypt and it's dev package along with the Python dev package: 
+ 1. Install libmcrypt and it's dev package along with the Python dev package: 
 	yum install libmcrypt-devel libmcrypt python-devel
 	These packages are needed by the installer for python-mcrypt
- 2) Install the standard Linux development tools. For RHEL/CentOS 5 and 6, `yum groupinstall 'Development tools'` can be used if your YUM repos have group information. 
- 3) Use Pip or easy install to install python-mcrypt, hashlib, and pycrypto
- 4) Run the setup script
+ 2. Install the standard Linux development tools. For RHEL/CentOS 5 and 6, `yum groupinstall 'Development tools'` can be used if your YUM repos have group information. 
+ 3. Use Pip or easy install to install python-mcrypt, hashlib, and pycrypto
+ 4. Run the setup script
 	python setup.py install
- 5) Test that the module loads
+ 5. Test that the module loads
 	python -c "import pypwsafe"
 
 Windows
@@ -51,15 +51,16 @@ FIXME: Fill this in
 
 FAQ
 ===
- Q: Why mcrypt and not use pyCrypto?
- A: The pyCrypto library doesn't support TwoFish, which is a newer cipher based on Blowfish. Twofish is required to encrypt/decrypt Password Safe v3 files.  
+### Why mcrypt and not use PyCrypto?
+The pyCrypto library doesn't support TwoFish, which is a newer cipher based on Blowfish. Twofish is required to encrypt/decrypt Password Safe v3 files.  
 
- Q: Where can I find details on the Password Safe file format?
- A: http://passwordsafe.git.sourceforge.net/git/gitweb.cgi?p=passwordsafe/pwsafe.git;a=blob_plain;f=pwsafe/pwsafe/docs/formatV3.txt;hb=HEAD or go to the password safe code base and check in /pwsafe/pwsafe/docs/formatV3.txt. 
+
+### Where can I find details on the Password Safe file format?
+http://passwordsafe.git.sourceforge.net/git/gitweb.cgi?p=passwordsafe/pwsafe.git;a=blob_plain;f=pwsafe/pwsafe/docs/formatV3.txt;hb=HEAD or go to the password safe code base and check in /pwsafe/pwsafe/docs/formatV3.txt. 
 	
 TODO
 ====
- 1) Add support for using a pure-python TwoFish algorithm if mcrypt doesn't work.
-   a) http://code.google.com/p/python-keysafe/source/browse/crypto/twofish.py
-   b) http://www.bjrn.se/code/twofishpy.txt 
- 2) Need to update against the latest version of the official psafe format v3 doc.
+ 1. Add support for using a pure-python TwoFish algorithm if mcrypt doesn't work.
+    http://code.google.com/p/python-keysafe/source/browse/crypto/twofish.py
+    http://www.bjrn.se/code/twofishpy.txt 
+ 2. Need to update against the latest version of the official psafe format v3 doc.
