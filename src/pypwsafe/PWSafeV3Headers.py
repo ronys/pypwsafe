@@ -34,7 +34,7 @@ from uuid import UUID, uuid4
 from pprint import pformat
 from binascii import unhexlify
 
-#logging.config.fileConfig('/etc/mss/psafe_log.conf')
+# logging.config.fileConfig('/etc/mss/psafe_log.conf')
 log = logging.getLogger("psafe.lib.header")
 log.debug('initing')
 
@@ -62,7 +62,8 @@ class Header(object):
     __metaclass__ = _HeaderType
     
     TYPE = None
-    
+    FIELD = None
+
     def __init__(self, htype, hlen, raw_data):
         self.data = raw_data[5:(hlen + 5)]
         self.raw_data = raw_data
@@ -83,7 +84,7 @@ class Header(object):
 
     def __repr__(self):
         # Can no longer depend on raw_data existing
-        #return "Header(%s,%d,%s)"%(repr(self.TYPE),self.len,repr(self.raw_data))
+        # return "Header(%s,%d,%s)"%(repr(self.TYPE),self.len,repr(self.raw_data))
         s = self.serial()
         return "Header(%s,%d,%s)" % (repr(self.TYPE), len(s), repr(s))
 
@@ -135,6 +136,7 @@ class VersionHeader(Header):
 '\x04\x03'  
     """
     TYPE = 0x00
+    FIELD = 'version'
 
     def __init__(self, htype = None, hlen = 2, raw_data = None, version = 0x305):
         if not htype:
@@ -147,6 +149,17 @@ class VersionHeader(Header):
     def parse(self):
         """Parse data"""
         self.version = unpack('=H', self.data)[0]
+        
+    def getVersionHuman(self):
+        if self.version in version_map:
+            return version_map[self.version]
+        return "Unknown Version %r" % self.version
+
+    def setVersionHuman(self, version):
+        if version in version_map:
+            self.version = version_map[version]
+        else:
+            raise ValueError("Unknown version name %r" % version)
 
     def __repr__(self):
         return "Version" + Header.__repr__(self)
@@ -157,7 +170,6 @@ class VersionHeader(Header):
     def serial(self):
         return pack('=H', self.version)
 
-from uuid import UUID
 class UUIDHeader(Header):
     """DB UUID
     uuid        uuid.UUID        Database uuid object
@@ -171,6 +183,7 @@ DHeader(1,16,'\x10\x00\x00\x00\x01\xbdV\x92{H\xdbL\xec\xbb+\xe90w5\x17\xa2P6b\xe
 "UUIDHeader(1,16,'\\x10\\x00\\x00\\x00\\x01\\xbdV\\x92{H\\xdbL\\xec\\xbb+\\xe90w5\\x17\\xa2P6b\\xe8\\x87\\x0c\\x83\\n\\xd8\\x11\\xd7')"
     """
     TYPE = 0x01
+    FIELD = 'uuid'
 
     def __init__(self, htype = None, hlen = 16, raw_data = None, uuid = None):
         if not htype:
@@ -209,6 +222,7 @@ K:V for opts:
 # FIXME: Fill in tests
     """
     TYPE = 0x02
+    FIELD = 'opts'
 
     def __init__(self, htype = None, hlen = 2, raw_data = None, **kw):
         if not htype:
@@ -280,6 +294,11 @@ K:V for opts:
                 self.opts[name] = value
             else:
                 raise PrefsDataTypeError, "Unexpected record type for preferences %r" % rtype
+        # Fill in defaults prefs
+        for typeS in [conf_bools, conf_ints, conf_strs]:
+            for name, info in typeS.items():
+                if name not in self.opts and info['type'] == ptDatabase:
+                    self.opts[name] = info['default']
 
     def __repr__(self):
         return "NonDefaultPrefs" + Header.__repr__(self)
@@ -296,6 +315,9 @@ K:V for opts:
             if type(value) != typ:
                 raise PrefsDataTypeError, "%r is not a valid type for the key %r" % (type(value), name)
             if typ == bool:
+                if value == conf_bools[name]['default']:
+                    # Default value - Don't save
+                    continue
                 if value is True:
                     value = 1
                 elif value is False:
@@ -305,9 +327,15 @@ K:V for opts:
                 ret += "B %d %d " % (conf_bools[name]['index'], value)
             elif typ == int:
                 value = int(value)
+                if value == conf_ints[name]['default']:
+                    # Default value - Don't save
+                    continue
                 ret += "I %d %d " % (conf_ints[name]['index'], value)
             elif typ == str:
                 value = str(value)
+                if value == conf_strs[name]['default']:
+                    # Default value - Don't save
+                    continue
                 delms = list("\"'#?!%&*+=:;@~<>?,.{}[]()\xbb")
                 delm = None
                 while delm is None and len(delms) > 0:
@@ -328,6 +356,7 @@ class TreeDisplayStatusHeader(Header):
   
     """
     TYPE = 0x03
+    FIELD = 'status'
 
     def __init__(self, htype = None, hlen = 1, raw_data = None, status = ''):
         if not htype:
@@ -358,6 +387,7 @@ class TimeStampOfLastSaveHeader(Header):
 lastsave    time struct        Last save time of DB
     """
     TYPE = 0x04
+    FIELD = 'lastsave'
 
     def __init__(self, htype = None, hlen = 1, raw_data = None, lastsave = time.gmtime()):
         if not htype:
@@ -383,32 +413,34 @@ lastsave    time struct        Last save time of DB
     def serial(self):
         return makedatetime(self.lastsave)
 
-#TODO: Add support for this header type
-#class WhoLastSavedHeader(Header):
-#    """ User who last saved the DB.     DEPRECATED
-#    """
-#    TYPE = 0x05
-#
-#    def __init__(self, htype = None, hlen = 1, raw_data = None, status = ''):
-#        if not htype:
-#            htype = self.TYPE
-#        if raw_data:
-#            Header.__init__(self, htype, hlen, raw_data)
-#        else:
-#            self.status = status
-#
-#    def parse(self):
-#        """Parse data"""
-#        self.lastsave = time.gmtime(unpack('=i', self.data)[0])
-#
-#    def __repr__(self):
-#        return "LastSave" + Header.__repr__(self)
-#
-#    def __str__(self):
-#        return "LastSave(%r)" % time.strftime("%a, %d %b %Y %H:%M:%S +0000", self.lastsave)
-#
-#    def serial(self):
-#        return makedatetime(self.lastsave)
+
+class WhoLastSavedHeader(Header):
+    """ User who last saved the DB.     *DEPRECATED*
+    """
+    TYPE = 0x05
+    FIELD = 'username'
+
+    def __init__(self, htype = None, hlen = 1, raw_data = None, username = ''):
+        if not htype:
+            htype = self.TYPE
+        if raw_data:
+            Header.__init__(self, htype, hlen, raw_data)
+        else:
+            self.username = username
+
+    def parse(self):
+        """Parse data"""
+        self.username = self.data
+
+    def __repr__(self):
+        return "LastSave" + Header.__repr__(self)
+
+    def __str__(self):
+        return "LastSaveUser(%r)" % self.username
+
+    def serial(self):
+        return self.username
+
 
 # Header(6,19,'Password Safe V3.23'),
 class LastSaveAppHeader(Header):
@@ -416,6 +448,7 @@ class LastSaveAppHeader(Header):
 lastSaveApp        string        Last saved by this app
     """
     TYPE = 0x06
+    FIELD = 'lastSaveApp'
 
     def __init__(self, htype = None, hlen = 1, raw_data = None, lastSaveApp = ''):
         if not htype:
@@ -444,6 +477,7 @@ class LastSaveUserHeader(Header):
 username    string        
     """
     TYPE = 0x07
+    FIELD = 'username'
 
     def __init__(self, htype = None, hlen = 1, raw_data = None, username = ''):
         if not htype:
@@ -472,6 +506,7 @@ class LastSaveHostHeader(Header):
 hostname    string        
     """
     TYPE = 0x08
+    FIELD = 'hostname'
 
     def __init__(self, htype = None, hlen = 1, raw_data = None, hostname = ''):
         if not htype:
@@ -499,6 +534,7 @@ class DBNameHeader(Header):
 dbName        String
     """
     TYPE = 0x09
+    FIELD = 'dbName'
 
     def __init__(self, htype = None, hlen = 1, raw_data = None, dbName = ''):
         if not htype:
@@ -520,12 +556,223 @@ dbName        String
 
     def serial(self):
         return self.dbName
+
+
+class NamedPasswordPolicy(dict):
+    """ """
+    def __init__(
+                 self,
+                 name,
+                 useLowercase = True,
+                 useUppercase = True,
+                 useDigits = True,
+                 useSymbols = True,
+                 useHexDigits = False,
+                 useEasyVision = False,
+                 makePronounceable = False,
+                 minTotalLength = 12,
+                 minLowercaseCharCount = 1,
+                 minUppercaseCharCount = 1,
+                 minDigitCount = 1,
+                 minSpecialCharCount = 1,
+                 allowedSpecialSymbols = DEFAULT_SPECIAL_CHARS,
+                 ):
+        dict.__init__(
+                      self,
+                      name = name,
+                      useLowercase = useLowercase,
+                      useUppercase = useUppercase,
+                      useDigits = useDigits,
+                      useSymbols = useSymbols,
+                      useHexDigits = useHexDigits,
+                      useEasyVision = useEasyVision,
+                      makePronounceable = makePronounceable,
+                      minTotalLength = minTotalLength,
+                      minLowercaseCharCount = minLowercaseCharCount,
+                      minUppercaseCharCount = minUppercaseCharCount,
+                      minDigitCount = minDigitCount,
+                      minSpecialCharCount = minSpecialCharCount,
+                      allowedSpecialSymbols = allowedSpecialSymbols,
+                      )
+    # TODO: Add __repr__ and __str__
+    
+    def __getattribute__(self, attr):
+        if attr in self:
+            return self[attr]
+        else:
+            return dict.__getattribute__(self, attr = attr)
+    
+    def __setattr__(self, attr, value):
+        if attr in self:
+            self[attr] = value
+        else:
+            return dict.__setattr__(self, attr, value)
+
+
+class NamedPasswordPoliciesHeader(Header):
+    """ Named password policies
+
+    """
+    TYPE = 0x10
+    FIELD = 'namedPasswordPolicies'
+    # A few constants
+    USELOWERCASE = 0x8000
+    USEUPPERCASE = 0x4000
+    USEDIGITS = 0x2000
+    USESYMBOLS = 0x1000
+    USEHEXDIGITS = 0x0800
+    USEEASYVERSION = 0x0400
+    MAKEPRONOUNCEABLE = 0x0200
+    UNUSED = 0x01ff
+
+    def __init__(self, htype = None, hlen = 1, raw_data = None, namedPasswordPolicies = []):
+        if not htype:
+            htype = self.TYPE
+        if raw_data:
+            Header.__init__(self, htype, hlen, raw_data)
+        else:
+            # Need an order for crypto checks
+            self.namedPasswordPolicies = []
+            for policy in namedPasswordPolicies:
+                if isinstance(policy, NamedPasswordPolicy):
+                    self.namedPasswordPolicies.append(policy)
+                elif isinstance(policy, dict):
+                    self.namedPasswordPolicies.append(NamedPasswordPolicy(**policy))
+                else:
+                    raise ValueError("Expected a dict or NamedPasswordPolicy")
+
+    def parse(self):
+        """Parse data"""
+        self.namedPasswordPolicies = []
+        left = self.data
+        # print repr(left)
+        count = int(unpack('=2s', left[:2])[0], 16)
+        log.debug("Should have %r records", count)
+        left = left[2:]
+        while len(left) > 2:
+            count -= 1
+            if count < 0:
+                log.warn("More record data than expected")
+            nameLen = int(unpack('=2s', left[:2])[0], 16)
+            left = left[2:]
+            name = left[:nameLen]
+            log.debug("Name len: %r Name: %r", nameLen, name)
+            left = left[nameLen:]
+            policy = unpack('=4s3s3s3s3s3s2s', left[:21])
+            left = left[21:]
+            # str hex to int
+            policy = [int(x, 16) for x in policy]
+            log.debug("%r: Policy=%r", name, policy)
+            # (flags, ttllen, minlow, minup, mindig, minsym, specialCharsLen) = policy
+            (flags, ttllen, mindig, minlow, minsym, minup, specialCharsLen) = policy
+                        
+            if flags & self.USELOWERCASE:
+                uselowercase = True
+            else:
+                uselowercase = False
+            if flags & self.USEUPPERCASE:
+                useuppercase = True
+            else:
+                useuppercase = False
+            if flags & self.USEDIGITS:
+                usedigits = True
+            else:
+                usedigits = False
+            if flags & self.USESYMBOLS:
+                usesymbols = True
+            else:
+                usesymbols = False
+            if flags & self.USEHEXDIGITS:
+                usehex = True
+            else:
+                usehex = False
+            if flags & self.USEEASYVERSION:
+                useeasy = True
+            else:
+                useeasy = False
+            if flags & self.MAKEPRONOUNCEABLE:
+                makepron = True
+            else:
+                makepron = False
+            if specialCharsLen == 0:
+                if useeasy:
+                    specialChars = DEFAULT_EASY_SPECIAL_CHARS
+                else:
+                    specialChars = DEFAULT_SPECIAL_CHARS
+            else:
+                specialChars = left[:specialCharsLen]
+                left = left[:specialCharsLen]
+            self.namedPasswordPolicies.append(NamedPasswordPolicy(
+                                                                  name,
+                                                                  useLowercase = uselowercase,
+                                                                  useUppercase = useuppercase,
+                                                                  useDigits = usedigits,
+                                                                  useSymbols = usesymbols,
+                                                                  useHexDigits = usehex,
+                                                                  useEasyVision = useeasy,
+                                                                  makePronounceable = makepron,
+                                                                  minTotalLength = ttllen,
+                                                                  minLowercaseCharCount = minlow,
+                                                                  minUppercaseCharCount = minup,
+                                                                  minDigitCount = mindig,
+                                                                  minSpecialCharCount = minsym,
+                                                                  allowedSpecialSymbols = specialChars,
+                                                                  ))
+            log.debug("Policy: %r", self.namedPasswordPolicies[-1])
+        log.debug("%r leftover", left)
+
+    def __repr__(self):
+        return "NamedPasswordPolicies" + Header.__repr__(self)
+
+    def __str__(self):
+        return "NamedPasswordPolicies(count=%d)" % len(self.namedPasswordPolicies)
+
+    def serial(self):
+        ret = '%02x' % len(self.namedPasswordPolicies)
+        for policy in self.namedPasswordPolicies:
+            flags = 0
+            if policy.useLowercase:
+                flags = flags | self.USELOWERCASE
+            if policy.useUppercase:
+                flags = flags | self.USEUPPERCASE
+            if policy.useDigits:
+                flags = flags | self.USEDIGITS
+            if policy.useSymbols:
+                flags = flags | self.USESYMBOLS
+            if policy.useHexDigits:
+                flags = flags | self.USEHEXDIGITS
+            if policy.useEasyVision:
+                flags = flags | self.USEEASYVERSION
+            if policy.makePronounceable:
+                flags = flags | self.MAKEPRONOUNCEABLE
+            if policy.useEasyVision and policy.allowedSpecialSymbols == DEFAULT_EASY_SPECIAL_CHARS:
+                allowedSpecialSymbols = ''
+            elif not policy.useEasyVision and policy.allowedSpecialSymbols == DEFAULT_SPECIAL_CHARS:
+                allowedSpecialSymbols = ''
+            else:
+                allowedSpecialSymbols = policy.allowedSpecialSymbols
+            ret += '%02x%s%04x%03x%03x%03x%03x%03x%s' % (
+                                                       len(policy.name),
+                                                       policy.name,
+                                                       flags,
+                                                       policy.minTotalLength,
+                                                       policy.minLowercaseCharCount,
+                                                       policy.minUppercaseCharCount,
+                                                       policy.minDigitCount,
+                                                       policy.minSpecialCharCount,
+                                                       allowedSpecialSymbols,
+                                                       )
+            # psafe_logger.debug("Serial to %s data %s"%(repr(ret),repr(self.data)))
+        
+        return ret
+    
     
 class DBDescHeader(Header):
     """ Description of the database
 dbDesc        String
     """
     TYPE = 0x0a
+    FIELD = 'dbDesc'
 
     def __init__(self, htype = None, hlen = 1, raw_data = None, dbDesc = ''):
         if not htype:
@@ -548,77 +795,121 @@ dbDesc        String
     def serial(self):
         return self.dbDesc
 
-# FIXME: Finish this
-#class DBFiltersHeader(Header):
-#    """ Description of the database
-#dbDesc        String
-#Specfic filters for this database.  This is the text equivalent to
-#the XML export of the filters as defined by the filter schema. The text 
-#'image' has no 'print formatting' e.g. tabs and carraige return/line feeds,
-#since XML processing does not require this. This field was introduced in 
-#format version 0x0305.
-#    """
-#    TYPE = 0x0b
-#
-#    def __init__(self, htype = None, hlen = 1, raw_data = None, dbDesc = ''):
-#        if not htype:
-#            htype = self.TYPE
-#        if raw_data:
-#            Header.__init__(self, htype, hlen, raw_data)
-#        else:
-#            self.dbDesc = dbDesc
-#
-#    def parse(self):
-#        """Parse data"""
-#        self.dbDesc = self.data
-#
-#    def __repr__(self):
-#        return "DBFilters" + Header.__repr__(self)
-#
-#    def __str__(self):
-#        return "DBFiltersHeader(%r)" % self.dbDesc
-#
-#    def serial(self):
-#        return self.dbDesc
-    
-# TODO: Figure out what "reserved" headers are used for in other apps
 
-# TODO: Fill this in once we have something to test against
-# FIXME: Finish this 
-#class RecentEntriesHeader(Header):
-#    """ Description of the database
-#recentEntries        List of UUIDs
-#
-#A list of the UUIDs (32 hex character representation of the 16 byte field)
-#of the recently used entries, prefixed by a 2 hex character representation
-#of the number of these entries (right justified and left filled with zeroes).
-#The size of the number of entries field gives a maximum number of entries of 255,
-#however the GUI may impose further restrictions e.g. Windows MFC UI limits this
-#to 25. The first entry is the most recent entry accessed. This field was
-#introduced in format version 0x0307.
-#    """
-#    TYPE = 0x0f
-#
-#    def __init__(self, htype = None, hlen = 1, raw_data = None, recentEntries = []):
-#        if not htype:
-#            htype = self.TYPE
-#        if raw_data:
-#            Header.__init__(self, htype, hlen, raw_data)
-#        else:
-#            self.recentEntries = recentEntries
-#
-#    def parse(self):
-#        """Parse data"""
-#        self.recentEntries = []
-#
-#    def __repr__(self):
-#        return "RecentEntries" + Header.__repr__(self)
-#
-#    def __str__(self):
-#        return "RecentEntriesHeader(%r)" % self.recentEntries
-#
-#    def serial(self):
-#        return ','.join(self.recentEntries)    
+class DBFiltersHeader(Header):
+    """ Description of the database
+dbDesc        String
+Specfic filters for this database.  This is the text equivalent to
+the XML export of the filters as defined by the filter schema. The text 
+'image' has no 'print formatting' e.g. tabs and carraige return/line feeds,
+since XML processing does not require this. This field was introduced in 
+format version 0x0305.
+    """
+    TYPE = 0x0b
+    FIELD = 'dbFilter'
+
+    def __init__(self, htype = None, hlen = 1, raw_data = None, dbFilter = ''):
+        if not htype:
+            htype = self.TYPE
+        if raw_data:
+            Header.__init__(self, htype, hlen, raw_data)
+        else:
+            self.dbFilter = dbFilter
+
+    def parse(self):
+        """Parse data"""
+        self.dbFilter = self.data
+
+    def __repr__(self):
+        return "DBFilters" + Header.__repr__(self)
+
+    def __str__(self):
+        return "DBFiltersHeader(%r)" % self.dbFilter
+
+    def serial(self):
+        return self.dbFilter
+    
+
+class RecentEntriesHeader(Header):
+    """ Description of the database
+ recentEntries        List of UUIDs
+
+ A list of the UUIDs (32 hex character representation of the 16 byte field)
+ of the recently used entries, prefixed by a 2 hex character representation
+ of the number of these entries (right justified and left filled with zeroes).
+ The size of the number of entries field gives a maximum number of entries of 255,
+ however the GUI may impose further restrictions e.g. Windows MFC UI limits this
+ to 25. The first entry is the most recent entry accessed. This field was
+ introduced in format version 0x0307.
+    """
+    TYPE = 0x0f
+    FIELD = 'recentEntries'
+
+    def __init__(self, htype = None, hlen = 1, raw_data = None, recentEntries = []):
+        if not htype:
+            htype = self.TYPE
+        if raw_data:
+            Header.__init__(self, htype, hlen, raw_data)
+        else:
+            self.recentEntries = recentEntries
+
+    def parse(self):
+        """Parse data"""
+        LEN = 32
+        left = self.data
+        assert len(left) % LEN == 0
+        self.recentEntries = []
+        while len(left) >= LEN:
+            segement = left[:LEN]
+            left = left[LEN:]
+            log.debug("Working with %r", segement)
+            found = UUID(segement)
+            log.debug("Found UUID of %r", found)
+            self.recentEntries.append(found)
+        log.debug("Left over: %r", left)
+
+    def __repr__(self):
+        return "RecentEntries" + Header.__repr__(self)
+
+    def __str__(self):
+        return "RecentEntriesHeader(%r)" % self.recentEntries
+
+    def serial(self):
+        return ','.join(self.recentEntries[:256])    
+
+
+class EmptyGroupHeader(Header):
+    """ An empty group - May appear multiple times. 
+ groupName        Group name
+
+This fields contains the name of an empty group that cannot be constructed
+from entries within the database. Unlike other header fields, this field can appear
+multiple times.
+    """
+    TYPE = 0x11
+    FIELD = 'groupName'
+
+    def __init__(self, htype = None, hlen = 1, raw_data = None, groupName = ''):
+        if not htype:
+            htype = self.TYPE
+        if raw_data:
+            Header.__init__(self, htype, hlen, raw_data)
+        else:
+            self.groupName = groupName
+
+    def parse(self):
+        """Parse data"""
+        self.groupName = self.data
+
+    def __repr__(self):
+        return "EmptyGroup" + Header.__repr__(self)
+
+    def __str__(self):
+        return "EmptyGroupHeader(%r)" % self.groupName
+
+    def serial(self):
+        return self.groupName
+
 
 class EOFHeader(Header):
     """End of headers

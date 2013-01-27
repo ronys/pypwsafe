@@ -15,22 +15,22 @@
 #    GNU General Public License for more details.
 #
 #    You should have received a copy of the GNU General Public License
-#    along with PyPWSafe.  If not, see http://www.gnu.org/licenses/old-licenses/gpl-2.0.html 
+#    along with PyPWSafe.  If not, see http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 #===============================================================================
-""" Read & write Password Safe v3 files. 
+""" Read & write Password Safe v3 files.
 
 @author: Paulson McIntyre <paul@gpmidi.net>
 @license: GPLv2
-@version: 0.1
+@version: 0.3
 """
 # Lets this lib work from both 2.4 and above
 try:
-    from hashlib import sha256_func #@UnresolvedImport
-    from hashlib import sha256_mod #@UnresolvedImport
+    from hashlib import sha256_func  # @UnresolvedImport
+    from hashlib import sha256_mod  # @UnresolvedImport
 except:
-    import Crypto.Hash.SHA256 as sha256_mod #@UnresolvedImport @Reimport
-    from Crypto.Hash.SHA256 import new as sha256_func #@UnresolvedImport @Reimport
-from mcrypt import MCRYPT #@UnresolvedImport
+    import Crypto.Hash.SHA256 as sha256_mod  # @UnresolvedImport @Reimport
+    from Crypto.Hash.SHA256 import new as sha256_func  # @UnresolvedImport @Reimport
+from mcrypt import MCRYPT  # @UnresolvedImport
 from hmac import new as HMAC
 from PWSafeV3Headers import *
 from PWSafeV3Records import *
@@ -39,6 +39,8 @@ import os, os.path
 from struct import pack, unpack
 import logging, logging.config
 import socket
+import getpass
+import re
 
 log = logging.getLogger("psafe.lib.init")
 log.debug('initing')
@@ -49,10 +51,10 @@ def stretchkey(passwd, salt, count):
     Stretch a key. H(pass+salt)
     @param passwd: The password being stretched
     @type passwd: string
-    @param salt: Salt for the password. Should pre-provided random data. 
+    @param salt: Salt for the password. Should pre-provided random data.
     @type salt: string
     @param count: The number of times to repeat the stretch function
-    @type count: int   
+    @type count: int
     """
     assert count > 0
     # Hash once with both
@@ -68,82 +70,110 @@ def stretchkey(passwd, salt, count):
         hsh = t.digest()
     return hsh
 
+def _findHeader(headers, htype):
+    for hdr in headers:
+        if type(hdr) == htype:
+            return hdr
+    return None
+
+def _getHeaderField(headers, htype, ignored = ''):
+    hdr = _findHeader(headers, htype)
+    if hdr:
+        return getattr(hdr, htype.FIELD)
+    return None
+
+def _getHeaderFields(headers, htype):
+    """ For headers that may be there multiple times """
+    found = []
+    for hdr in headers:
+        if type(hdr) == htype:
+            found.append(getattr(hdr, htype.FIELD))
+    return found
+
+def _setHeaderField(headers, htype, value):
+    hdr = _findHeader(headers, htype)
+    if hdr:
+        setattr(hdr, htype.FIELD, value)
+        return True
+    return False
+
 from struct import pack, unpack
 class PWSafe3(object):
-    """ A Password safe object. Allows read/write access to most header fields and records in a psafe object. 
+    """ A Password safe object. Allows read/write access to most header fields and records in a psafe object.
     """
-    
+
     filename = None
     """@ivar: Full path to pwsafe
     @type filename: string
     """
-    
+
     password = None
     """@ivar: Passsafe password
     @type password: string
     """
-    
+
     fl = None
     """@ivar: PWSafe file handle
     @type fl: File Handle
     """
-    
+
     flfull = None
     """@ivar: Contents of pwsafe file
     @type flfull: string
     """
-            
+
     pprime = None
     """@ivar: Stretched key used in B1 - B4
     @type pprime: string
     """
-    
+
     enckey = None
     """@ivar: K; session key for main data block
     @type enckey: string
     """
-    
+
     hshkey = None
     """@ivar: L; hmac key
     @type hshkey: string
     """
-    
+
     records = None
     """@ivar: List of all records we have
     @type records: [Record,...]
     """
-    
+
     hmacreq = None
     """@ivar: List of functions to run to generate hmac. Order matters when reading a file.
     @type hmacreq: function
     """
-    
+
     hmac = None
     """@ivar: Originally its the hmac from the file. Should be updated when ever changes are made.
     @type hmac: string
     """
-    
+
     mode = None
-    """@ivar: Read only or read/write mode. "RO" for read-only or "RW" or read/write.  
+    """@ivar: Read only or read/write mode. "RO" for read-only or "RW" or read/write.
     @type mode: string
     """
-    
+
     iv = None
     """@ivar: Initialization vector used for CBC mode when encrypting / decrypting the header and records.
     @type iv: string[16]
-    """ 
-    
+    """
+
     def __init__(self, filename, password, mode = "RW"):
         """
-        @param filename: The path to the Password Safe file. Will be created if it doesn't already exist. 
+        @param filename: The path to the Password Safe file. Will be created if it doesn't already exist.
         @type filename: string
-        @param password: The password to encrypt/decrypt the safe with. 
+        @param password: The password to encrypt/decrypt the safe with.
         @type password: string
-        @param mode: Read only or read/write mode. "RO" for read-only or "RW" or read/write.  
+        @param mode: Read only or read/write mode. "RO" for read-only or "RW" or read/write.
         @type mode: string
-        """   
+        """
         log.debug('Creating psafe %s' % repr(filename))
         self.locked = False
+        filename = os.path.realpath(filename)
         psafe_exists = os.access(filename, os.F_OK)
         psafe_canwrite = os.access(filename, os.W_OK)
         psafe_canwritebase = os.access(os.path.dirname(filename), os.W_OK)
@@ -169,7 +199,7 @@ class PWSafe3(object):
         else:
             log.warn("Safe doesn't exist or can't read directory")
             raise AccessError, "No such safe %s" % filename
-        if psafe_exists:            
+        if psafe_exists:
             self.filename = filename
             log.debug("Loading existing safe from %r" % self.filename)
             self.fl = open(self.filename, 'rb')
@@ -190,7 +220,7 @@ class PWSafe3(object):
             self.salt = os.urandom(32)
             log.debug("Salt is %s" % repr(self.salt))
             # ITER
-            self.iter = pow(2, 11) #2048
+            self.iter = pow(2, 11)  # 2048
             log.debug("Iter set to %s" % self.iter)
             # K
             self.enckey = os.urandom(32)
@@ -205,12 +235,23 @@ class PWSafe3(object):
             self.headers = []
             self.hmacreq = []
             self.records = []
+            # Add EOF headers
+            self.headers.append(EOFHeader())
+            self.autoUpdateHeaders()
+
+    def autoUpdateHeaders(self):
+        """ Set auto-set headers that should be set on save """
+        self.setUUID(updateAutoData = False)
+        self.setLastSaveApp('pypwsafe', updateAutoData = False)
+        self.setTimeStampOfLastSave(datetime.datetime.now(), updateAutoData = False)
+        self.setLastSaveHost(updateAutoData = False)
+        self.setLastSaveUser(updateAutoData = False)
 
     def __len__(self):
         return len(self.records)
 
     def save(self):
-        """ Save the safe to disk 
+        """ Save the safe to disk
         """
         if self.mode == "RW":
             self.serialiaze()
@@ -221,7 +262,7 @@ class PWSafe3(object):
             raise ROSafe, "Safe is not in read/write mode"
 
     def serialiaze(self):
-        """ Turn the in-memory objects into in-memory strings.         
+        """ Turn the in-memory objects into in-memory strings.
         """
         # P'
         self._regen_pprime()
@@ -249,10 +290,10 @@ class PWSafe3(object):
         self.fulldata = ''
         for header in self.headers:
             self.fulldata += header.serialiaze()
-            #log.debug("In header flfull now %s",(self.flfull,))
+            # log.debug("In header flfull now %s",(self.flfull,))
         for record in self.records:
             self.fulldata += record.serialiaze()
-            #log.debug("In record flfull now %s",(self.flfull,))
+            # log.debug("In record flfull now %s",(self.flfull,))
         # Encrypted self.fulldata to self.cryptdata
         log.debug("Encrypting header/record data %s" % repr(self.fulldata))
         self.encrypt_data()
@@ -267,8 +308,8 @@ class PWSafe3(object):
         log.debug("P' = % s" % repr(self.pprime))
 
     def _regen_b1b2(self):
-        """Regenerate b1 and b2. This is the encrypted form of K. 
-        
+        """Regenerate b1 and b2. This is the encrypted form of K.
+
         """
         tw = MCRYPT('twofish', 'ecb')
         tw.init(self.pprime)
@@ -276,7 +317,7 @@ class PWSafe3(object):
         log.debug("B1/B2 set to %s" % repr(self.b1b2))
 
     def _regen_b3b4(self):
-        """Regenerate b3 and b4. This is the encrypted form of L. 
+        """Regenerate b3 and b4. This is the encrypted form of L.
         """
         tw = MCRYPT('twofish', 'ecb')
         tw.init(self.pprime)
@@ -285,7 +326,7 @@ class PWSafe3(object):
 
     def _regen_hpprime(self):
         """Regenerate H(P')
-        Save the SHA256 of self.pprime. 
+        Save the SHA256 of self.pprime.
         """
         hsh = sha256_func()
         hsh.update(self.pprime)
@@ -343,11 +384,11 @@ class PWSafe3(object):
         hdr = Create_Header(self._fetch_block)
         self.headers.append(hdr)
         self.hmacreq.append(hdr.hmac_data)
-        #print str(hdr) +" - -"+ repr(hdr)
+        # print str(hdr) +" - -"+ repr(hdr)
         while type(hdr) != EOFHeader:
             hdr = Create_Header(self._fetch_block)
             self.headers.append(hdr)
-            #print str(hdr) +" - -"+ repr(hdr)
+            # print str(hdr) +" - -"+ repr(hdr)
 
         # Parse DB
         self.records = []
@@ -384,7 +425,7 @@ class PWSafe3(object):
         self.hshkey = tw.decrypt(self.b3b4)
         log.debug("Encryption key K: %s " % repr(self.enckey))
         log.debug("HMAC Key L: %s " % repr(self.hshkey))
-        
+
     def decrypt_data(self):
         """Decrypt encrypted portion of header and data"""
         log.debug("Creating mcrypt object")
@@ -393,7 +434,7 @@ class PWSafe3(object):
         tw.init(self.enckey, self.iv)
         log.debug("Decrypting data")
         self.fulldata = tw.decrypt(self.cryptdata)
-                
+
     def encrypt_data(self):
         """Encrypted fulldata to cryptdata"""
         tw = MCRYPT('twofish', 'cbc')
@@ -409,14 +450,14 @@ class PWSafe3(object):
                 data += i.data
             else:
                 data += i.hmac_data()
-                #assert i.data == i.hmac_data(), "Working on %r where %r!=%r" % (i, i.data, i.hmac_data())
+                # assert i.data == i.hmac_data(), "Working on %r where %r!=%r" % (i, i.data, i.hmac_data())
         for i in self.records:
             # TODO: Add caching support
             log.debug("Adding hmac data %r from %r" % (i.hmac_data(), i.__class__.__name__))
             data += i.hmac_data()
         log.debug("Building hmac with key %s", repr(self.hshkey))
         hm = HMAC(self.hshkey, data, sha256_mod)
-        #print hm.hexdigest()
+        # print hm.hexdigest()
         log.debug("HMAC %s-%s", repr(hm.hexdigest()), repr(hm.digest()))
         return hm.digest()
 
@@ -445,7 +486,7 @@ class PWSafe3(object):
         Yield all entries in the form
                 (uuid, title, group, username, password, notes)
         @rtype: [(uuid, title, group, username, password, notes),...]
-        @return A list of tuples covering all known records. 
+        @return A list of tuples covering all known records.
                 """
         def nrwrapper(name):
             try:
@@ -464,19 +505,19 @@ class PWSafe3(object):
             )
 
     def getEntries(self):
-        """ Return a list of all records 
+        """ Return a list of all records
         @rtype: [Record,...]
-        @return: A list of all records. 
+        @return: A list of all records.
         """
         return self.records
-    
+
     def getpass(self, uuid = None):
         """Returns the password of the item with the given UUID
         @param uuid: UUID of the record to find
         @type uuid: UUID object
         @rtype: string
         @return: Password for the record with the given UUID. Raise an exception otherwise
-        @raise UUIDNotFoundError  
+        @raise UUIDNotFoundError
         """
         for record in self.records:
             if record['UUID'] == uuid:
@@ -491,166 +532,303 @@ class PWSafe3(object):
 
     def getUUID(self):
         """Return the safe's uuid"""
-        for hdr in self.headers:
-            if type(hdr) == UUIDHeader:
-                return hdr.uuid
-        return uuid4()
-    
-    def setUUID(self, uuid = None):        
-        for hdr in self.headers:
-            if type(hdr) == UUIDHeader:
-                hdr.uuid = str(uuid)
-                return
-        if uuid:
-            self.headers.append(UUIDHeader(uuid = uuid))
-        else:
-            self.headers.append(UUIDHeader())
+        return _getHeaderField(self.headers, UUIDHeader)
+
+    def setUUID(self, uuid = None, updateAutoData = True):
+        if updateAutoData:
+            self.autoUpdateHeaders()
+
+        if uuid is None:
+            uuid = uuid4()
+
+        if not _setHeaderField(self.headers, UUIDHeader, uuid):
+            self.headers.insert(0, UUIDHeader(uuid = uuid))
+
+    def removeUUID(self):
+        _setHeaderField(self.headers, UUIDHeader, None)
 
     def getVersion(self):
         """Return the safe's version"""
-        for hdr in self.headers:
-            if type(hdr) == VersionHeader:
-                return hdr.version
-    
-    def setVersion(self, version = None):
+        return _getHeaderField(self.headers, VersionHeader, 'version')
+
+    def setVersion(self, version = None, updateAutoData = True):
         """Return the safe's version"""
-        for hdr in self.headers:
-            if type(hdr) == VersionHeader:
-                hdr.version = version
-                return
-        if version:
-            self.headers.append(VersionHeader(version = version))
+        if updateAutoData:
+            self.autoUpdateHeaders()
+
+        if not _setHeaderField(self.headers, VersionHeader, version):
+            self.headers.insert(0, VersionHeader(version = version))
+            
+    def getVersionPretty(self):
+        """Return the safe's version"""
+        hdr = _findHeader(self.headers, VersionHeader)
+        if hdr:
+            return hdr.getVersionHuman()
+        return None            
+
+    def setVersionPretty(self, version = None, updateAutoData = True):
+        """Return the safe's version"""
+        if updateAutoData:
+            self.autoUpdateHeaders()
+            
+        hdr = _findHeader(self.headers, VersionHeader)
+        if hdr:
+            hdr.setVersionHuman(version)
         else:
-            self.headers.append(VersionHeader())
-        
+            n = VersionHeader(version = 0x00)
+            n.setVersionHuman(version = version)
+            self.headers.insert(0, n)
+
     def getTimeStampOfLastSave(self):
-        for hdr in self.headers:
-            if type(hdr) == TimeStampOfLastSaveHeader:
-                return hdr.lastsave
-    
-    def setTimeStampOfLastSave(self, timestamp):
-        for hdr in self.headers:
-            if type(hdr) == TimeStampOfLastSaveHeader:
-                hdr.lastsave = timestamp.timetuple()
-                return
-        self.headers.append(TimeStampOfLastSaveHeader(lastsave = timestamp.timetuple()))
-            
+        return _getHeaderField(self.headers, TimeStampOfLastSaveHeader, 'lastsave')
+
+    def setTimeStampOfLastSave(self, timestamp, updateAutoData = True):
+        if updateAutoData:
+            self.autoUpdateHeaders()
+
+        if not _setHeaderField(self.headers, TimeStampOfLastSaveHeader, timestamp.timetuple()):
+            self.headers.insert(0, TimeStampOfLastSaveHeader(lastsave = timestamp.timetuple()))
+
     def getLastSaveApp(self):
-        for hdr in self.headers:
-            if type(hdr) == LastSaveAppHeader:
-                return hdr.lastSafeApp
-    
-    def setLastSaveApp(self, app):
-        for hdr in self.headers:
-            if type(hdr) == LastSaveAppHeader:
-                hdr.lastSafeApp = app
-                return
-        self.headers.append(LastSaveAppHeader(lastSaveApp = app))
+        return _getHeaderField(self.headers, LastSaveAppHeader, 'lastSafeApp')
+
+    def setLastSaveApp(self, app, updateAutoData = True):
+        if updateAutoData:
+            self.autoUpdateHeaders()
+
+        if not _setHeaderField(self.headers, LastSaveAppHeader, app):
+            self.headers.insert(0, LastSaveAppHeader(lastSaveApp = app))
+
+    def getLastSaveUser(self, fallbackOld = True):
+        ret = self.getLastSaveUserNew()
+        if ret or not fallbackOld:
+            return ret
+        return self.getLastSaveUserOld()        
+        
+    def getLastSaveUserNew(self):
+        """ Get the last saving user using only the non-deprecated field """
+        return _getHeaderField(self.headers, LastSaveUserHeader, 'username')
+        
+    def getLastSaveUserOld(self):
+        """ Get the last saving user using only the deprecated 0x05 field """
+        return _getHeaderField(self.headers, WhoLastSavedHeader)
+
+    def setLastSaveUser(self, username = None, updateAutoData = True, addOld = False):
+        if updateAutoData:
+            self.autoUpdateHeaders()
+        if username is None:
+            username = getpass.getuser()
             
-    def getLastSaveUser(self):
-        for hdr in self.headers:
-            if type(hdr) == LastSaveUserHeader:
-                return hdr.username
-    
-    def setLastSaveUser(self, username):
-        for hdr in self.headers:
-            if type(hdr) == LastSaveUserHeader:
-                hdr.username = username
-                return
-        self.headers.append(LastSaveUserHeader(username = username))
-    
+        if not _setHeaderField(self.headers, LastSaveUserHeader, username):
+            self.headers.insert(0, LastSaveUserHeader(username = username))
+        if addOld and not _setHeaderField(self.headers, WhoLastSavedHeader, username):
+            self.headers.insert(0, WhoLastSavedHeader(username = username))
+
     def getLastSaveHost(self):
-        for hdr in self.headers:
-            if type(hdr) == LastSaveHostHeader:
-                return hdr.hostname
-    
-    def setLastSaveHost(self, hostname):
-        for hdr in self.headers:
-            if type(hdr) == LastSaveHostHeader:
-                hdr.hostname = hostname
-                return
-        self.headers.append(LastSaveHostHeader(hostname = hostname))
-                
+        return _getHeaderField(self.headers, LastSaveHostHeader, 'hostname')
+
+    def setLastSaveHost(self, hostname = None, updateAutoData = True):
+        if updateAutoData:
+            self.autoUpdateHeaders()
+        if not hostname:
+            hostname = socket.gethostname()
+
+        if not _setHeaderField(self.headers, LastSaveHostHeader, hostname):
+            self.headers.insert(0, LastSaveHostHeader(hostname = hostname))
+
     def getDbName(self):
         """ Returns the name of the db according to the psafe headers """
-        for hdr in self.headers:
-            if type(hdr) == DBNameHeader:
-                return hdr.dbName
-    
-    def setDbName(self, dbName):
+        return _getHeaderField(self.headers, DBNameHeader, 'dbName')
+
+    def setDbName(self, dbName, updateAutoData = True):
         """ Returns the name of the db according to the psafe headers """
-        for hdr in self.headers:
-            if type(hdr) == DBNameHeader:
-                hdr.dbName = dbName
-                return
-        self.headers.append(DBNameHeader(dbName = dbName))
-            
+        if updateAutoData:
+            self.autoUpdateHeaders()
+
+        if not _setHeaderField(self.headers, DBNameHeader, dbName):
+            self.headers.insert(0, DBNameHeader(dbName = dbName))
+
     def getDbDesc(self):
         """ Returns the description of the db according to the psafe headers """
-        for hdr in self.headers:
-            if type(hdr) == DBDescHeader:
-                return hdr.dbDesc
-    
-    def setDbDesc(self, dbDesc):
+        return _getHeaderField(self.headers, DBDescHeader, 'dbDesc')
+
+    def setDbDesc(self, dbDesc, updateAutoData = True):
         """ Returns the description of the db according to the psafe headers """
+        if updateAutoData:
+            self.autoUpdateHeaders()
+
+        if not _setHeaderField(self.headers, DBDescHeader, dbDesc):
+            self.headers.insert(0, DBDescHeader(dbDesc = dbDesc))
+
+    def getDbPolicies(self):
+        """ Return a list of all named password policies """
+        return _getHeaderField(self.headers, NamedPasswordPoliciesHeader)
+
+    def setDbPolicies(self, dbName, updateAutoData = True):
+        """ Returns the name of the db according to the psafe headers """
+        raise NotImplementedError("FIXME: Add db policy control methods")
+
+    def getDbRecentEntries(self):
+        """ Return a list of recent headers """
+        return _getHeaderFields(self.headers, RecentEntriesHeader)
+
+    def setDbRecentEntries(self, entryUUID, updateAutoData = True):
+        """ Returns the name of the db according to the psafe headers """
+        raise NotImplementedError("FIXME: Add db recent entries control methods")
+    
+    def getDbPrefs(self):
+        """ Return a list of recent headers """
+        return _getHeaderField(self.headers, NonDefaultPrefsHeader)
+
+    def setDbPrefs(self, prefs, updateAutoData = True):
+        """ Returns the name of the db according to the psafe headers """
+        if updateAutoData:
+            self.autoUpdateHeaders()
+
+        if not _setHeaderField(self.headers, NonDefaultPrefsHeader, prefs):
+            self.headers.insert(0, NonDefaultPrefsHeader(**prefs))
+    
+    def setDbPref(self, prefName, prefValue, updateAutoData = True):
+        """ Returns the name of the db according to the psafe headers """
+        if updateAutoData:
+            self.autoUpdateHeaders()
+
+        hdr = _findHeader(self.headers, NonDefaultPrefsHeader)
+        if hdr:
+            attr = getattr(hdr, NonDefaultPrefsHeader.FIELD)
+            attr[prefName] = prefValue
+        else:
+            self.headers.insert(0, NonDefaultPrefsHeader(prefName = prefValue))
+    
+    def getEmptyGroups(self):
+        """ Return a list of empty group names """
+        return _getHeaderFields(self.headers, EmptyGroupHeader)
+
+    def setEmptyGroups(self, groups, updateAutoData = True):
+        """ Removes all existing empty group headers and adds one as given by groups """
+        if updateAutoData:
+            self.autoUpdateHeaders()
+        
         for hdr in self.headers:
-            if type(hdr) == DBDescHeader:
-                hdr.dbDesc = dbDesc
-                return
-        self.headers.append(DBDescHeader(dbDesc = dbDesc))
+            if type(hdr) == EmptyGroupHeader:
+                self.headers.remove(hdr)
+        
+        for groupName in groups:
+            self.headers.insert(0, EmptyGroupHeader(groupName = groupName))
+    
+    def addEmptyGroup(self, groupName, updateAutoData = True):
+        """ Removes all existing empty group headers and adds one as given by groups """
+        if updateAutoData:
+            self.autoUpdateHeaders()
+        
+        assert groupName not in self.getEmptyGroups()
+        
+        self.headers.insert(0, EmptyGroupHeader(groupName = groupName))
 
     def _get_lock_data(self):
+        """ Returns a string representing the data that should be stored in the lockfile
+        For details about Password Safe's implementation see: http://passwordsafe.git.sourceforge.net/git/gitweb.cgi?p=passwordsafe/pwsafe.git;a=blob;f=pwsafe/pwsafe/src/os/windows/file.cpp
+        """
         pid = os.getpid()
+        username = getpass.getuser()
         host = socket.gethostname()
-        fil = self.filename.replace('.psafe3', '.plk')
-        from pickle import dumps
-        return dumps((pid, host, fil))
-        
+        return "%s@%s:%d" % (username, host, pid)
+
+    # Example Lockfile data: 'myusername@myhostname:12345'
+    LOCKFILE_PARSE_RE = re.compile(r'^(.*)@([^@:]*):(\d+)$')
+
     def lock(self):
-        """ Acquire a lock on the DB. Raise an exception on failure """
-        lfile = self.filename.replace('.psafe3', '.plk')
+        """ Acquire a lock on the DB. Raise an exception on failure. Raises an error
+        if the lock has already be acquired by this process or another. 
+        Note: Make sure to wrap the post-lock, pre-unlock in a try-finally
+        so that the safe is always unlocked. 
+        Note: The type of locking/unlocking used should be compatable with 
+        the actuall Password Safe app. If the psafe save dir is shared via
+        NFS/CIFS/etc then users of the share should be able to read/write/lock/unlock
+        psafe files. 
+        Note: No gurentee that this will work in Windows
+        """
+
+        # Use splitext() to handle the case where the file may not have psafe3 ext or any extension at all.
+        # Note the full path of filename is not lost when the extension is split off.
+        filename, _ = os.path.splitext(self.filename)
+        lfile = os.path.extsep.join((filename, 'plk'))
+
+        log.debug("Going to lock %r using %r", self, lfile)
+
         # Make sure we don't already hold the lock
         if self.locked and os.access(lfile, os.R_OK):
             raise LockAlreadyAcquiredError
-        
+
         if os.path.isfile(lfile):
             # May be a dead pid
-            from pickle import loads
+            log.debug("Lock file already exists. Reading it. ")
             f = open(lfile, 'rb')
-            pid, host, fil = loads(f.read())
+            data = f.read()
             f.close()
-            if host == socket.gethostbyname():
-                try:
-                    os.kill(pid, 0) #@UndefinedVariable
-                    raise AlreadyLockedError, "Other process is alive. Can't override lock. "
-                except:
-                    # Not really locked, remove stale lock
-                    os.remove(lfile)
-                    return self.lock()
+            found = self.LOCKFILE_PARSE_RE.findall(data)
+            log.debug("Got %r from the lock", found)
+            if len(found) == 1:
+                (lusername, lhostname, lpid) = found[0]
+                if lhostname == socket.gethostbyname():
+                    try:  # Check if the other proc is still alive
+                        os.kill(pid, 0)  # @UndefinedVariable
+                        log.info("Other process (PID: %r) is alive. Can't override lock for %r ", lpid, self)
+                        raise AlreadyLockedError, "Other process is alive. Can't override lock. "
+                    except:
+                        # Not really locked, remove stale lock
+                        log.warning("Removing stale lock file of %r at %r", self, lfile)
+                        os.remove(lfile)
+                        return self.lock()
+                else:
+                    log.info("Lock file is for a different host (%r). Assuming %r is locked. ", lhostname, self)
+                    raise AlreadyLockedError, "Lock is on a different host. Can't try to unlock. "
             else:
-                raise AlreadyLockedError, "Lock is on a different host. Can't try to unlock. "
-        
+                log.info("Lock file contains invalid data: %r Assuming the safe, %r, is already locked. ", found, self)
+                raise AlreadyLockedError, "Lock file contains invalid data. Assuming the safe is already locked. "
         self.locked = lfile
-                
+
         # Create the lock file with no race conditions
-        # Should generate an OS error if the file already exists 
+        # Should generate an OS error if the file already exists
         try:
             fd = os.open(lfile, os.O_CREAT | os.O_EXCL | os.O_RDWR)
             os.write(fd, self._get_lock_data())
             os.close(fd)
         except OSError, e:
+            log.info("%r reported as unlocked but can't create the lockfile", self)
             raise AlreadyLockedError
-        
+
     def unlock(self):
-        """ Unlock the DB """
+        """ Unlock the DB 
+        Note: See lock method for important locking info. 
+        """
         if not self.locked:
+            log.info("%r is not locked. Failing to unlock. ", self)
             raise NotLockedError, "Not currently locked"
         try:
             os.remove(self.locked)
             self.locked = False
+            log.debug("%r for %r is unlocked", self.locked, self)
         except OSError:
+            log.info("%r reported as locked but no lock file exists", self)
             raise NotLockedError, "Obj reported as locked but no lock file exists"
-                   
+    
+    def forceUnlock(self):
+        """ Try to unlock and remove the lock file by force. 
+        Note: File permissions can cause this to fail.
+        @return: True if a lock file was removed. False otherwise.  
+        """
+        lfile = self.filename.replace('.psafe3', '.plk')
+        log.debug("Going to remove lock file %r from %r by force. Local obj lock status: %r", lfile, self, self.locked)
+        self.locked = False
+        try:
+            os.remove(lfile)
+            log.info("Removed lock file %r by force", lfile)
+            return True
+        except OSError:
+            log.debug("Lock file %r doesn't exist", lfile)
+            return False
+        
 # Misc helper functions
 def ispsafe3(filename):
     """Return True if the file appears to be a psafe v3 file. Does not do in-depth checks. """
