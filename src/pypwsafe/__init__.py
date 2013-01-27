@@ -21,7 +21,7 @@
 
 @author: Paulson McIntyre <paul@gpmidi.net>
 @license: GPLv2
-@version: 0.1
+@version: 0.3
 """
 # Lets this lib work from both 2.4 and above
 try:
