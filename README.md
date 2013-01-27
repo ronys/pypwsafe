@@ -1,7 +1,8 @@
 Introduction
 ============
 A pure-Python library that can read and write Password Safe v3 
-files. It includes support for 
+files. It includes full support for almost all current Password
+Safe v3 database headers and record headers. 
 
 History
 =======
