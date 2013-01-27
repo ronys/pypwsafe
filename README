@@ -1,38 +1,27 @@
 A pure-Python library that can read and write Password Safe v3 files. The library was initially released by Symantec under the GPLv2 in 2011. 
 
-
-
 There are a few known issues: 
 	1) Lack of documentation
 	2) Unit tests are out-of-date
 	3) There MAY be an issue with the order that NonDefaultPrefsHeader serializes preferences for HMAC validation in pypwsafe. Although the library validates HMACs fine at the moment, so who knows. 
-	4) The version of python-mcrypt for Windows isn't compatible with this library. As a result, the pypwsafe library doesn't work in Windows. If anyone is able to get around this, please notify us. The library has not been tried under Cygwin.   
-	5) The Django fronted, psafefe, isn't completed. It also has two competing apps, pws and psafe. For the moment, psafe seems the way to go. Although it'll take a lot more time to implement. 
+	4) The version of python-mcrypt for Windows isn't compatible with this library. As a result, the pypwsafe library doesn't work in Windows. If anyone is able to get around this, please notify us. The library has not been tried under Cygwin.    
 	 
-Deps: 
+Dependencies: 
 	1) python-mcrypt
 	2) hashlib
-	** Below is only required for Django FE & RPC layer **
-	3) Django 1.4 (http://www.djangoproject.com)
-	4) Dajaxice (http://www.dajaxproject.com/)
-	5) Dajax (http://www.dajaxproject.com/)
-	6) jQuery (http://jquery.com/)
-	7) rpc4django (http://davidfischer.name/rpc4django/)
+	3) pycrypto
 
-Linux Install Instructions
+RHEL/CentOS Install Instructions
 	1) Install libmcrypt and it's dev package along with the Python dev package: 
 		yum install libmcrypt-devel libmcrypt python-devel
 		These packages are needed by the installer for python-mcrypt
-	2) Install dev tools. For RHEL/CentOS 5 and 6, `yum groupinstall 'Development tools'` can be used if your YUM repos have group information. 
+	2) Install the standard Linux development tools. For RHEL/CentOS 5 and 6, `yum groupinstall 'Development tools'` can be used if your YUM repos have group information. 
 	3) Use Pip or easy install to install python-mcrypt, hashlib, and pycrypto
 	4) Run the setup script
 		python setup.py install
 	5) Test that the module loads
 		python -c "import pypwsafe"
-	6) Place a copy of jQuery in the 'static' folder. It should be named 'jquery.js'. 
-	7) Place a copy of Dajax/Dajaxice's jQuery-supporting code in the 'static' folder. It should be named 'jquery.dajax.core.js'. 
-	8) (Optional) Edit templates/ga.html and add in any Google Analytics style tracking code. It can also be used for anything that you want included in all pages. 
-
+	
 Development Setup Instructions
 FIXME: Fill this in
 
