@@ -857,9 +857,15 @@ class RecentEntriesHeader(Header):
         """Parse data"""
         LEN = 32
         left = self.data
-        assert len(left) % LEN == 0
+        assert len(left) % LEN == 2
         self.recentEntries = []
+        count = int(unpack('=2s', left[:2])[0], 16)
+        log.debug("Should have %r records", count)
+        left = left[2:]
         while len(left) >= LEN:
+            count -= 1
+            if count < 0:
+                log.warn("More record data than expected")
             segement = left[:LEN]
             left = left[LEN:]
             log.debug("Working with %r", segement)
@@ -875,7 +881,8 @@ class RecentEntriesHeader(Header):
         return "RecentEntriesHeader(%r)" % self.recentEntries
 
     def serial(self):
-        return ','.join(self.recentEntries[:256])    
+        packed = [pack('=16s', str(uuid.bytes)) for uuid in self.recentEntries[:256]]
+        return ','.join(packed)
 
 
 class EmptyGroupHeader(Header):
