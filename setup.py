@@ -71,7 +71,7 @@ through V3.29Y.
       keywords = 'password login authentication passwordsafe security psafe3',
       install_requires = [
         'distribute',
-        'python-mcrypt',
+        'python2-mcrypt',
         'hashlib',
         'pycrypto',
       ],

@@ -22,7 +22,7 @@ Known Issues
 	 
 Dependencies
 ============
- 1. python-mcrypt
+ 1. python2-mcrypt
  2. hashlib OR pycrypto
 
 Install Instructions
@@ -32,13 +32,26 @@ RHEL/CentOS
 -----------
  1. Install libmcrypt and it's dev package along with the Python dev package: 
 	yum install libmcrypt-devel libmcrypt python-devel
-	These packages are needed by the installer for python-mcrypt
+	These packages are needed by the installer for python2-mcrypt
  2. Install the standard Linux development tools. For RHEL/CentOS 5 and 6, `yum groupinstall 'Development tools'` can be used if your YUM repos have group information. 
- 3. Use Pip or easy install to install python-mcrypt, hashlib, and pycrypto
+ 3. Use Pip or easy install to install python2-mcrypt, hashlib, and pycrypto
  4. Run the setup script
 	python setup.py install
  5. Test that the module loads
 	python -c "import pypwsafe"
+
+MACOSX
+---------
+1. Install clang compiler using brew:
+   brew install llvm
+2. Install mcrypt using brew:
+   brew install mcrypt
+   This package is needed by the installer for python2-mcrypt
+3. Use Pip or easy install to install python2-mcrypt, hashlib, and pycrypto
+4. Run the setup script
+   python setup.py install
+5. Test that the module loads
+   python -c "import pypwsafe"
 
 Windows
 -------
