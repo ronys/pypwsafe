@@ -7,3 +7,5 @@
 /Test Script.py
 /_gsdata_
 /.externalToolBuilders
+/build
+/src/*.egg-info
