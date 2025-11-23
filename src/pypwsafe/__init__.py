@@ -25,16 +25,21 @@
 """
 # Lets this lib work from both 2.4 and above
 try:
-    from hashlib import sha256_func  # @UnresolvedImport
-    from hashlib import sha256_mod  # @UnresolvedImport
-except:
-    import Crypto.Hash.SHA256 as sha256_mod  # @UnresolvedImport @Reimport
-    from Crypto.Hash.SHA256 import new as sha256_func  # @UnresolvedImport @Reimport
+    import hashlib
+    sha256_func = hashlib.sha256       # constructor: sha256_func()
+    sha256_mod = hashlib.sha256        # can be passed to hmac.new as digestmod
+except Exception:
+    # fallback to Crypto if available
+    try:
+        import Crypto.Hash.SHA256 as sha256_mod
+        from Crypto.Hash.SHA256 import new as sha256_func
+    except ImportError:
+        raise ImportError("Requires hashlib.sha256 or Crypto.Hash.SHA256")
 from mcrypt import MCRYPT  # @UnresolvedImport
 from hmac import new as HMAC
-from PWSafeV3Headers import *
-from PWSafeV3Records import *
-from errors import *
+from .PWSafeV3Headers import *
+from .PWSafeV3Records import *
+from .errors import *
 import os, os.path
 from struct import pack, unpack
 import logging, logging.config
@@ -64,7 +69,7 @@ def stretchkey(passwd, salt, count):
     # Expecting it in binary form; NOT HEX FORM
     hsh = inithsh.digest()
     # Rehash
-    for i in xrange(count):
+    for i in range(count):
         t = sha256_func()
         t.update(hsh)
         hsh = t.digest()
@@ -192,13 +197,13 @@ class PWSafe3(object):
             self.mode = "RW"
         elif not psafe_exists and psafe_canwrite and mode != "RW":
             log.warn("Asked to create a new psafe but mode is set to RO")
-            raise AccessError, "Asked to create a new safe in RO mode"
+            raise AccessError("Asked to create a new safe in RO mode")
         elif psafe_exists:
             log.warn("Can't read safe %s" % repr(filename))
-            raise AccessError, "Can't read %s" % filename
+            raise AccessError("Can't read %s" % filename)
         else:
             log.warn("Safe doesn't exist or can't read directory")
-            raise AccessError, "No such safe %s" % filename
+            raise AccessError("No such safe %s" % filename)
         if psafe_exists:
             self.filename = filename
             log.debug("Loading existing safe from %r" % self.filename)
@@ -259,7 +264,7 @@ class PWSafe3(object):
             fil.write(self.flfull)
             fil.close()
         else:
-            raise ROSafe, "Safe is not in read/write mode"
+            raise ROSafe("Safe is not in read/write mode")
 
     def serialiaze(self):
         """ Turn the in-memory objects into in-memory strings.
@@ -398,7 +403,7 @@ class PWSafe3(object):
 
         if self.current_hmac(cached = True) != self.hmac:
             log.error('Invalid HMAC Calculated: %s File: %s' % (repr(self.current_hmac()), repr(self.hmac)))
-            raise InvalidHMACError, "Calculated: % s File: % s" % (repr(self.current_hmac()), repr(self.hmac))
+            raise InvalidHMACError("Calculated: % s File: % s" % (repr(self.current_hmac()), repr(self.hmac)))
 
     def __str__(self):
         ret = ''
@@ -411,7 +416,7 @@ class PWSafe3(object):
         assert num_blocks > 0
         bytes = num_blocks * 16
         if bytes > len(self.remaining_headers):
-            raise EOFError, "No more header data"
+            raise EOFError("No more header data")
         ret = self.remaining_headers[:bytes]
         self.remaining_headers = self.remaining_headers[bytes:]
         return ret
@@ -522,7 +527,7 @@ class PWSafe3(object):
         for record in self.records:
             if record['UUID'] == uuid:
                 return record['Password']
-        raise UUIDNotFoundError, "UUID %s was not found. " % repr(uuid)
+        raise UUIDNotFoundError("UUID %s was not found. " % repr(uuid))
 
     def __getitem__(self, *args, **kwargs):
         return self.records.__getitem__(*args, **kwargs)
@@ -746,7 +751,7 @@ class PWSafe3(object):
         the actuall Password Safe app. If the psafe save dir is shared via
         NFS/CIFS/etc then users of the share should be able to read/write/lock/unlock
         psafe files. 
-        Note: No gurentee that this will work in Windows
+        Note: No guarantee that this will work in Windows
         """
 
         # Use splitext() to handle the case where the file may not have psafe3 ext or any extension at all.
@@ -774,7 +779,7 @@ class PWSafe3(object):
                     try:  # Check if the other proc is still alive
                         os.kill(pid, 0)  # @UndefinedVariable
                         log.info("Other process (PID: %r) is alive. Can't override lock for %r ", lpid, self)
-                        raise AlreadyLockedError, "Other process is alive. Can't override lock. "
+                        raise AlreadyLockedError("Other process is alive. Can't override lock. ")
                     except:
                         # Not really locked, remove stale lock
                         log.warning("Removing stale lock file of %r at %r", self, lfile)
@@ -782,10 +787,10 @@ class PWSafe3(object):
                         return self.lock()
                 else:
                     log.info("Lock file is for a different host (%r). Assuming %r is locked. ", lhostname, self)
-                    raise AlreadyLockedError, "Lock is on a different host. Can't try to unlock. "
+                    raise AlreadyLockedError("Lock is on a different host. Can't try to unlock. ")
             else:
                 log.info("Lock file contains invalid data: %r Assuming the safe, %r, is already locked. ", found, self)
-                raise AlreadyLockedError, "Lock file contains invalid data. Assuming the safe is already locked. "
+                raise AlreadyLockedError("Lock file contains invalid data. Assuming the safe is already locked. ")
         self.locked = lfile
 
         # Create the lock file with no race conditions
@@ -794,7 +799,7 @@ class PWSafe3(object):
             fd = os.open(lfile, os.O_CREAT | os.O_EXCL | os.O_RDWR)
             os.write(fd, self._get_lock_data())
             os.close(fd)
-        except OSError, e:
+        except OSError as e:
             log.info("%r reported as unlocked but can't create the lockfile", self)
             raise AlreadyLockedError
 
@@ -804,14 +809,14 @@ class PWSafe3(object):
         """
         if not self.locked:
             log.info("%r is not locked. Failing to unlock. ", self)
-            raise NotLockedError, "Not currently locked"
+            raise NotLockedError("Not currently locked")
         try:
             os.remove(self.locked)
             self.locked = False
             log.debug("%r for %r is unlocked", self.locked, self)
         except OSError:
             log.info("%r reported as locked but no lock file exists", self)
-            raise NotLockedError, "Obj reported as locked but no lock file exists"
+            raise NotLockedError("Obj reported as locked but no lock file exists")
     
     def forceUnlock(self):
         """ Try to unlock and remove the lock file by force. 

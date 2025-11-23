@@ -22,7 +22,8 @@
 @version: 0.1
 """
 import unittest
-import os, os.path, sys
+import os, sys
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src')))
 from tempfile import mkdtemp
 from shutil import rmtree, copyfile
 # Password to decrypt all test safes
@@ -39,9 +40,9 @@ class TestSafeTestBase(unittest.TestCase):
     
     def setUp(self):        
         assert self.testSafe
-        
-        self.safeLoc = os.path.join("../test_safes", self.testSafe)
-        assert os.access(self.safeLoc, os.R_OK)
+        base = os.path.normpath(os.path.join(os.path.dirname(__file__), '..', 'test_safes'))
+        self.safeLoc = os.path.abspath(os.path.join(base, self.testSafe))
+        self.assertTrue(os.path.exists(self.safeLoc), "Test safe missing: " + self.safeLoc)
         
         # Make a temp dir and make a copy
         self.safeDir = mkdtemp(prefix = "safe_test_%s" % type(self).__name__)

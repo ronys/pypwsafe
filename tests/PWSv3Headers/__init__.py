@@ -22,9 +22,9 @@ Created on Jan 19, 2013
 @license: GPLv2
 @version: 0.1
 '''
-from PasswdPolicyTest import *
-from RecentEntriesTest import *
-from LastSaveUser import *
-from NonDefaultPrefsTest import *
-from EmptyGroupsTest import *
-from VersionTest import *
+from .PasswdPolicyTest import *
+from .RecentEntriesTest import *
+from .LastSaveUser import *
+from .NonDefaultPrefsTest import *
+from .EmptyGroupsTest import *
+from .VersionTest import *

@@ -1,9 +1,12 @@
-/.project
-/.pydevproject
-/.settings
-/MANIFEST
-/dist
-/python-pypwsafe-0.1
-/Test Script.py
-/_gsdata_
-/.externalToolBuilders
+.project
+.pydevproject
+.settings
+MANIFEST
+dist
+python-pypwsafe-0.1
+Test Script.py
+_gsdata_
+.externalToolBuilders.vs
+.vs
+**/__pycache__/
+

@@ -825,11 +825,11 @@ conf_strs = {
 
 #           Type Mappings
 conf_types = {}
-for name, info in conf_bools.items():
+for name, info in list(conf_bools.items()):
     conf_types[name] = bool
-for name, info in conf_ints.items():
+for name, info in list(conf_ints.items()):
     conf_types[name] = int
-for name, info in conf_strs.items():
+for name, info in list(conf_strs.items()):
     conf_types[name] = str
 
 

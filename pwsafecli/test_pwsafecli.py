@@ -43,7 +43,7 @@ def try_collect_record_options_with_attrs(attrs):
     mock.title = None
     mock.username = None
     mock.UUID = None
-    for key in attrs.keys():
+    for key in list(attrs.keys()):
         setattr(mock, key, attrs[key])
 
     result = pwsafecli.collect_record_options(mock)
@@ -119,7 +119,7 @@ class TestCommandLine(object):
 
     def test_get_missing_options(self):
         for cmdline in ("unittest get --file foo", "unittest get --file foo --email foo@bar"):
-            print cmdline
+            print(cmdline)
             options = pwsafecli.parse_commandline(self.parsers,
                                                  cmdline.split())
             with AssertRaises(pwsafecli.PWSafeCLIValidationError):

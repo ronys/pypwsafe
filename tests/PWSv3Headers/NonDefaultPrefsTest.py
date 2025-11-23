@@ -68,7 +68,7 @@ class NonDefaultPrefsTest_RecordLevel(TestSafeTestBase):
         # print repr(prefs)
     
         for typeS in [conf_bools, conf_ints, conf_strs]:
-            for name, info in typeS.items():
+            for name, info in list(typeS.items()):
                 if info['type'] == ptDatabase:
                     self.assertTrue(name in prefs, "Didn't find %r in %r" % (name, prefs))
                 else:

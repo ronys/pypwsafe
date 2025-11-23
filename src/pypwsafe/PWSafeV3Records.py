@@ -28,7 +28,7 @@
 from struct import unpack, pack
 import calendar, time
 import logging, logging.config
-from errors import *
+from .errors import *
 import os
 from uuid import UUID, uuid4
 import datetime
@@ -86,8 +86,8 @@ class Record(object):
 
     def _if_noitem(self, item):
         """If an item isn't in our key store, create it. """
-        if not self.lk.has_key(item):
-            for i in RecordPropTypes.values():
+        if item not in self.lk:
+            for i in list(RecordPropTypes.values()):
                 if i.rNAME == item:
                     r = i()
                     self.lk[item] = r
@@ -104,7 +104,7 @@ class Record(object):
 
     def __str__(self):
         ret = ''
-        for i in self.lk.keys():
+        for i in list(self.lk.keys()):
             #print str(self.lk[i])
 
             ret += str(self.lk[i]) + "\n"
@@ -235,7 +235,7 @@ class Record(object):
         
     def getHistory(self):
         ret = []
-        for tm, passwd in self['PasswordHistory']['history'].items():
+        for tm, passwd in list(self['PasswordHistory']['history'].items()):
             ret.append(dict(
                             password = passwd,
                             saved = datetime.datetime(*tm[:6]),
@@ -244,9 +244,9 @@ class Record(object):
         return ret
     
     def _find_hist(self):
-        if not self.lk.has_key("PasswordHistory"):
+        if "PasswordHistory" not in self.lk:
             self["PasswordHistory"] = dict(enabled=True,maxsize=254,history=[])
-        if self.lk.has_key("PasswordHistory"):
+        if "PasswordHistory" in self.lk:
             return self.lk['PasswordHistory']
 
     def appendHistory(self, oldpw, dt = datetime.datetime.now()):
@@ -381,7 +381,7 @@ class _RecordPropType(type):
             RecordPropTypes[cls.rTYPE] = cls
 
 #     Record Prop
-class RecordProp(object):
+class RecordProp(object, metaclass=_RecordPropType):
     """A single property of a psafe3 record. This represents an unknown type or is overridden by records of a known type.
     rTYPE        int        Properity type. May be null.
     rNAME        string        Code name of properity type.
@@ -390,8 +390,6 @@ class RecordProp(object):
     raw_data    string        Record data including padding and headers
     data        string        Record data minus headers and padding
     """
-    # Auto-register all declared classes
-    __metaclass__ = _RecordPropType
     
     rTYPE = None
     rNAME = "Unknown"
@@ -439,7 +437,7 @@ class RecordProp(object):
         if add_data == 16:
             add_data = 0
         padding = ''
-        for i in xrange(0, add_data):
+        for i in range(0, add_data):
             padding += self._rand_char()
         assert add_data != 16
         assert len(padding) == add_data
@@ -1129,23 +1127,23 @@ where:
             elif self.data[0] == "1":
                 self.enabled = True
             else:
-                raise PropParsingError, "Invalid enabled/disabled flag %s" % repr(self.data[0])
+                raise PropParsingError("Invalid enabled/disabled flag %s" % repr(self.data[0]))
             psafe_logger.debug("Set password history to %s", repr(self.enabled))
             # Max size of hist list
             try:
                 self.maxsize = int(self.data[1:3], 16)
             except ValueError:
-                raise PropParsingError, "Invalid maxsize type %s" % repr(self.data[1:3])
+                raise PropParsingError("Invalid maxsize type %s" % repr(self.data[1:3]))
             if self.maxsize < 0 or self.maxsize > 255:
-                raise PropParsingError, "Invalid maxsize value %s" % repr(self.data[1:3])
+                raise PropParsingError("Invalid maxsize value %s" % repr(self.data[1:3]))
             psafe_logger.debug("Set password history max size to %d", self.maxsize)
             # Current size of hist list
             try:
                 self._cursize = int(self.data[3:5], 16)
             except ValueError:
-                raise PropParsingError, "Invalid cursize type %s" % repr(self.data[3:5])
+                raise PropParsingError("Invalid cursize type %s" % repr(self.data[3:5]))
             if self._cursize < 0 or self._cursize > 255:
-                raise PropParsingError, "Invalid cursize value %s" % repr(self.data[3:5])
+                raise PropParsingError("Invalid cursize value %s" % repr(self.data[3:5]))
             psafe_logger.debug("Set current size of password history to %d", self._cursize)
             # FIXME: Should this end at self.len? 
             try:
@@ -1166,7 +1164,7 @@ where:
                     data = data[len_real:]
                     self.history.append((tm, password))
             except ValueError:
-                raise PropParsingError, "Error parsing password history"
+                raise PropParsingError("Error parsing password history")
             assert self._cursize == len(self.history)
 
     def __repr__(self):
@@ -1779,7 +1777,7 @@ class EOERecordProp(RecordProp):
         return ''
 
     def set(self, value):
-        raise ValueError, "Can't set data to the EOE record"
+        raise ValueError("Can't set data to the EOE record")
 
     def serial(self):
         return ''
@@ -1808,7 +1806,7 @@ def Create_Prop(fetchblock_f):
     # Lazy way to add the header data back
     # TODO: Clean up header add back
     data = firstblock[:5] + data
-    if RecordPropTypes.has_key(rTYPE):
+    if rTYPE in RecordPropTypes:
         try:
             return RecordPropTypes[rTYPE](rTYPE, rlen, data)
         except:

@@ -51,7 +51,7 @@ def match_valid(record, **params):
 
     valid = False
 
-    for key, value in params.items():
+    for key, value in list(params.items()):
          if value is None:
              continue
          valid = get_record_attr(record, key) == value
@@ -147,13 +147,13 @@ def show_records(records, attributes): # pragma: no cover
         attributes = VALID_ATTRIBUTES
 
     for record in records:
-        print "["
+        print("[")
         for i in attributes:
             attr = i
             if not i[0].isupper():
                 attr = attr.title()
-            print "    %s: %s" % (attr, get_record_attr(record, i))
-        print "]"
+            print("    %s: %s" % (attr, get_record_attr(record, i)))
+        print("]")
 
 def get_safe(filename, password): # pragma: no cover
     safe = None
@@ -188,7 +188,7 @@ def add_action(options): # pragma: no cover
     with Locked(safe):
         result = add_or_update_record(safe, None, options)
     if options.verbose:
-        print result
+        print(result)
 
 def delete_validator(options):
     if options.UUID is None:
@@ -350,7 +350,7 @@ def parse_commandline(parsers, argv):
 
     action = argv[1]
 
-    if action not in parsers.keys():
+    if action not in list(parsers.keys()):
         raise PWSafeCLIValidationError("unknown action: %s" % action)
 
     parser = parsers[action]
@@ -420,9 +420,9 @@ if __name__ == "__main__": # pragma: no cover
         options = parse_commandline(parsers, sys.argv)
 
         main(options)
-    except PWSafeCLIValidationError, e:
+    except PWSafeCLIValidationError as e:
         sys.stderr.write("%s\n" % e)
         sys.exit(1)
-    except PWSafeCLIError, e:
+    except PWSafeCLIError as e:
         sys.stderr.write("%s\n" % e)
         sys.exit(1)

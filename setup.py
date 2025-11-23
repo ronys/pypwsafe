@@ -22,7 +22,7 @@ Created on Jul 23, 2011
 '''
 from setuptools import setup
 import sys
-VERSION = "0.3"
+VERSION = "0.5"
 
 # Generate docs
 import os
@@ -57,11 +57,11 @@ through V3.29Y.
       data_files = [],
       classifiers = [
           "License :: OSI Approved :: GNU General Public License v2 (GPLv2)",
-          "Programming Language :: Python :: 2.6",
-          "Programming Language :: Python :: 2.7",
+          "Programming Language :: Python :: 3.9.16",
           "Development Status :: 4 - Beta",
           "Operating System :: MacOS",
           "Operating System :: POSIX",
+          "Operating System :: Windows",
           "Intended Audience :: System Administrators",
           "Intended Audience :: Developers",
           "Topic :: Security :: Cryptography",
@@ -71,7 +71,7 @@ through V3.29Y.
       keywords = 'password login authentication passwordsafe security psafe3',
       install_requires = [
         'distribute',
-        'python2-mcrypt',
+        'python3-mcrypt',
         'hashlib',
         'pycrypto',
       ],

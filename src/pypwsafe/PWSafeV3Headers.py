@@ -26,8 +26,8 @@
 # Note: Use "=" in all packs to account for 64bit systems
 
 from struct import unpack, pack
-from errors import *
-from consts import *
+from .errors import *
+from .consts import *
 import os
 import logging, logging.config
 from uuid import UUID, uuid4
@@ -46,10 +46,10 @@ class _HeaderType(type):
         # Skip any where TYPE is none, such as the base class
         if cls.TYPE:
             # Make sure no type ids are duplicated
-            assert not headers.has_key(cls.TYPE)
+            assert cls.TYPE not in headers
             headers[cls.TYPE] = cls
 
-class Header(object):
+class Header(object, metaclass=_HeaderType):
     """A psafe3 header object. Should be extended. This also servers as a "unknown" header type.
     raw_data    string        Real data that was passed
     data        string        Raw data minus padding and headers
@@ -58,8 +58,6 @@ class Header(object):
     TYPE        int        Header type that IDs it in psafe3
 
     """
-    # Auto-register new classes
-    __metaclass__ = _HeaderType
     
     TYPE = None
     FIELD = None
@@ -111,7 +109,7 @@ class Header(object):
         if add_data == 16:
             add_data = 0
         padding = ''
-        for i in xrange(0, add_data):
+        for i in range(0, add_data):
             padding += os.urandom(1)
         assert len(padding) == add_data
         assert len(data + padding) % 16 == 0
@@ -244,43 +242,43 @@ K:V for opts:
             del remander[0:3]
             if rtype == "B":
                 found = False
-                for name, info in conf_bools.items():
+                for name, info in list(conf_bools.items()):
                     if info['index'] == key:
                         found = True
                         break
                 if not found:
-                    raise ConfigItemNotFoundError, "%d is not a valid configuration item" % key
+                    raise ConfigItemNotFoundError("%d is not a valid configuration item" % key)
                 if value == "0":
                     self.opts[name] = False
                 elif value == "1":
                     self.opts[name] = True
                 else:
-                    raise PrefsValueError, "Expected either 0 or 1 for bool type, got %r" % value
+                    raise PrefsValueError("Expected either 0 or 1 for bool type, got %r" % value)
             elif rtype == "I":
                 found = False
-                for name, info in conf_ints.items():
+                for name, info in list(conf_ints.items()):
                     if info['index'] == key:
                         found = True
                         break
                 if not found:
-                    raise ConfigItemNotFoundError, "%d is not a valid configuration item" % key
+                    raise ConfigItemNotFoundError("%d is not a valid configuration item" % key)
                 try:
                     value = int(value)
                 except ValueError:
-                    raise  PrefsDataTypeError, "%r is not a valid int" % value
+                    raise  PrefsDataTypeError("%r is not a valid int" % value)
                 if info['min'] != -1 and info['min'] > value:
-                    raise  PrefsDataTypeError, "%r is too small" % value
+                    raise  PrefsDataTypeError("%r is too small" % value)
                 if info['max'] != -1 and info['max'] < value:
-                    raise  PrefsDataTypeError, "%r is too big" % value
+                    raise  PrefsDataTypeError("%r is too big" % value)
                 self.opts[name] = value
             elif rtype == "S":
                 found = False
-                for name, info in conf_strs.items():
+                for name, info in list(conf_strs.items()):
                     if info['index'] == key:
                         found = True
                         break
                 if not found:
-                    raise ConfigItemNotFoundError, "%d is not a valid configuration item" % key
+                    raise ConfigItemNotFoundError("%d is not a valid configuration item" % key)
                 # Remove "" or whatever the delimiter is 
                 delm = value[0]
                 if value[-1] == delm:
@@ -293,10 +291,10 @@ K:V for opts:
                 # Save the pref
                 self.opts[name] = value
             else:
-                raise PrefsDataTypeError, "Unexpected record type for preferences %r" % rtype
+                raise PrefsDataTypeError("Unexpected record type for preferences %r" % rtype)
         # Fill in defaults prefs
         for typeS in [conf_bools, conf_ints, conf_strs]:
-            for name, info in typeS.items():
+            for name, info in list(typeS.items()):
                 if name not in self.opts and info['type'] == ptDatabase:
                     self.opts[name] = info['default']
 
@@ -308,12 +306,12 @@ K:V for opts:
 
     def serial(self):
         ret = ''
-        for name, value in self.opts.items():
-            if not conf_types.has_key(name):
-                raise PrefsValueError, "%r is not a valid configuration option" % name
+        for name, value in list(self.opts.items()):
+            if name not in conf_types:
+                raise PrefsValueError("%r is not a valid configuration option" % name)
             typ = conf_types[name]
             if type(value) != typ:
-                raise PrefsDataTypeError, "%r is not a valid type for the key %r" % (type(value), name)
+                raise PrefsDataTypeError("%r is not a valid type for the key %r" % (type(value), name))
             if typ == bool:
                 if value == conf_bools[name]['default']:
                     # Default value - Don't save
@@ -323,7 +321,7 @@ K:V for opts:
                 elif value is False:
                     value = 0
                 else:
-                    raise PrefsDataTypeError, "%r is not a valid value for the key %r" % (value, name)
+                    raise PrefsDataTypeError("%r is not a valid value for the key %r" % (value, name))
                 ret += "B %d %d " % (conf_bools[name]['index'], value)
             elif typ == int:
                 value = int(value)
@@ -344,10 +342,10 @@ K:V for opts:
                     else:
                         del delms[0]
                 if not delm:
-                    raise UnableToFindADelimitersError, "Couldn't find a delminator for %r" % value
+                    raise UnableToFindADelimitersError("Couldn't find a delminator for %r" % value)
                 ret += "S %d %s%s%s " % (conf_strs[name]['index'], delm, value, delm)
             else:
-                raise PrefsDataTypeError, "Unexpected record type for preferences %r" % typ
+                raise PrefsDataTypeError("Unexpected record type for preferences %r" % typ)
         return ret
 
 # Header(3,14,'00000000000000'),
@@ -960,7 +958,7 @@ def Create_Header(fetchblock_f):
     assert rlen <= len(data)
     # TODO: Clean up header add back
     data = firstblock[:5] + data
-    if headers.has_key(rtype):
+    if rtype in headers:
         return headers[rtype](rtype, rlen, data)
     else:
         # Unknown header

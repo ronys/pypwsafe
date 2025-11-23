@@ -111,7 +111,7 @@ class NamedPolicyTest_RecordLevel(TestSafeTestBase):
     def test_flags(self):
         for policy in self.testSafeO.getDbPolicies():
             if policy['name'] in self.FIXED_POLICIES:
-                for k, v in self.FIXED_POLICIES[policy['name']].items():
+                for k, v in list(self.FIXED_POLICIES[policy['name']].items()):
                     self.assertTrue(k in policy, "%r: Expected %r to be in %r" % (policy['name'], k, policy))
                     self.assertEqual(policy[k], v, "%r: Expected %r from %r to equal %r" % (policy['name'], policy[k], k, v))
    

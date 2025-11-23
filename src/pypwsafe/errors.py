@@ -23,7 +23,7 @@
 @license: GPLv2
 @version: 0.1
 """
-class PSafeError(StandardError):
+class PSafeError(Exception):
     """Base passsafe error"""
 
 class PasswordError(PSafeError):
