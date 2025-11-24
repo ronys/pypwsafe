@@ -1,3 +1,28 @@
+Metadata-Version: 2.4
+Name: python-pypwsafe
+Version: 0.6
+Summary: Python interface to Password Safe v3 files
+Author-email: Paulson McIntyre <paul@gpmidi.net>
+License: GPL-2.0-or-later
+Project-URL: Homepage, https://github.com/ronys/pypwsafe
+Keywords: password,login,authentication,passwordsafe,security,psafe3
+Classifier: License :: OSI Approved :: GNU General Public License v2 (GPLv2)
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Development Status :: 4 - Beta
+Classifier: Operating System :: MacOS
+Classifier: Operating System :: POSIX
+Classifier: Operating System :: Windows
+Classifier: Intended Audience :: System Administrators
+Classifier: Intended Audience :: Developers
+Classifier: Topic :: Security :: Cryptography
+Classifier: Topic :: Utilities
+Classifier: Topic :: System :: Systems Administration
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: twofish
+Requires-Dist: pycryptodome
+Dynamic: license-file
+
 Introduction
 ============
 A pure-Python library that can read and write Password Safe v3 

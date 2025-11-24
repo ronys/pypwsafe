@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "python-pypwsafe"
+version = "0.6"
+description = "Python interface to Password Safe v3 files"
+readme = "README.md"
+authors = [
+    { name = "Paulson McIntyre", email = "paul@gpmidi.net" }
+]
+license = { text = "GPL-2.0-or-later" }
+keywords = ["password", "login", "authentication", "passwordsafe", "security", "psafe3"]
+classifiers = [
+    "License :: OSI Approved :: GNU General Public License v2 (GPLv2)",
+    "Programming Language :: Python :: 3.9",
+    "Development Status :: 4 - Beta",
+    "Operating System :: MacOS",
+    "Operating System :: POSIX",
+    "Operating System :: Windows",
+    "Intended Audience :: System Administrators",
+    "Intended Audience :: Developers",
+    "Topic :: Security :: Cryptography",
+    "Topic :: Utilities",
+    "Topic :: System :: Systems Administration"
+]
+dependencies = [
+    "twofish",
+    "pycryptodome"
+]
+
+[project.urls]
+Homepage = "https://github.com/ronys/pypwsafe"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[project.scripts]
+pwsafecli = "pwsafecli.pwsafecli:main"
+psafedump = "pwsafecli.psafedump:main"

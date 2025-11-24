@@ -1,0 +1,3 @@
+[console_scripts]
+psafedump = pwsafecli.psafedump:main
+pwsafecli = pwsafecli.pwsafecli:main

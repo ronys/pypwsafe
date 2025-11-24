@@ -24,12 +24,12 @@
 @version: 0.5
 """
 
-from twofish import Twofish
-from Crypto.Hash import SHA256, HMAC
+from Crypto.Cipher import TwoFish
+from Crypto.Hash import SHA1, HMAC
 
-from pypwsafe.PWSafeV3Headers import *
-from pypwsafe.PWSafeV3Records import *
-from pypwsafe.errors import *
+from .PWSafeV3Headers import *
+from .PWSafeV3Records import *
+from .errors import *
 import os, os.path
 from struct import pack, unpack
 import logging, logging.config
@@ -40,49 +40,6 @@ import re
 log = logging.getLogger("psafe.lib.init")
 log.debug('initing')
 from uuid import uuid4
-
-from twofish import Twofish
-
-class CBC:
-    def __init__(self, cipher: Twofish, iv: bytes):
-        self.cipher = cipher
-        self.block_size = 16
-        if len(iv) != self.block_size:
-            raise ValueError("IV must be 16 bytes")
-        self.iv = iv
-
-    def _process(self, data: bytes, block_func) -> bytes:
-        """Generic CBC block processor using a provided block function."""
-        if len(data) % self.block_size != 0:
-            raise ValueError("Data length must be multiple of 16 bytes")
-
-        result = b""
-        prev = self.iv
-        for i in range(0, len(data), self.block_size):
-            block = data[i:i+self.block_size]
-            result_block, prev = block_func(block, prev)
-            result += result_block
-        return result
-
-
-class CBCEncryptor(CBC):
-    def __call__(self, data: bytes) -> bytes:
-        def encrypt_block(block, prev):
-            # XOR plaintext with previous ciphertext (or IV)
-            xored = bytes(a ^ b for a, b in zip(block, prev))
-            encrypted = self.cipher.encrypt(xored)
-            return encrypted, encrypted
-        return self._process(data, encrypt_block)
-
-
-class CBCDecryptor(CBC):
-    def __call__(self, data: bytes) -> bytes:
-        def decrypt_block(block, prev):
-            decrypted = self.cipher.decrypt(block)
-            # XOR with previous ciphertext (or IV)
-            plaintext = bytes(a ^ b for a, b in zip(decrypted, prev))
-            return plaintext, block
-        return self._process(data, decrypt_block)
 
 def stretchkey(passwd, salt, count):
     """
@@ -96,14 +53,14 @@ def stretchkey(passwd, salt, count):
     """
     assert count > 0
     # Hash once with both
-    inithsh = SHA256.new()
-    inithsh.update(passwd.encode("utf-8"))
+    inithsh = sha256_func()
+    inithsh.update(passwd)
     inithsh.update(salt)
     # Expecting it in binary form; NOT HEX FORM
     hsh = inithsh.digest()
     # Rehash
     for i in range(count):
-        t = SHA256.new()
+        t = sha256_func()
         t.update(hsh)
         hsh = t.digest()
     return hsh
@@ -349,14 +306,16 @@ class PWSafe3(object):
         """Regenerate b1 and b2. This is the encrypted form of K.
 
         """
-        tw = Twofish(self.pprime)
+        tw = MCRYPT('twofish', 'ecb')
+        tw.init(self.pprime)
         self.b1b2 = tw.encrypt(self.enckey)
         log.debug("B1/B2 set to %s" % repr(self.b1b2))
 
     def _regen_b3b4(self):
         """Regenerate b3 and b4. This is the encrypted form of L.
         """
-        tw = Twofish(self.pprime)
+        tw = MCRYPT('twofish', 'ecb')
+        tw.init(self.pprime)
         self.b3b4 = tw.encrypt(self.hshkey)
         log.debug("B3/B4 set to %s" % repr(self.b3b4))
 
@@ -364,7 +323,8 @@ class PWSafe3(object):
         """Regenerate H(P')
         Save the SHA256 of self.pprime.
         """
-        hsh = SHA256.new(self.pprime)
+        hsh = sha256_func()
+        hsh.update(self.pprime)
         self.hpprime = hsh.digest()
         log.debug("Set H(P') to % s" % repr(self.hpprime))
         assert self.check_password()
@@ -453,7 +413,8 @@ class PWSafe3(object):
 
     def calc_keys(self):
         """Calculate sessions keys for encryption and hmac. Is based on pprime, b1b2, b3b4"""
-        tw = Twofish(self.pprime)
+        tw = MCRYPT('twofish', 'ecb')
+        tw.init(self.pprime)
         self.enckey = tw.decrypt(self.b1b2)
         # its ok to reuse; ecb doesn't keep state info
         self.hshkey = tw.decrypt(self.b3b4)
@@ -462,18 +423,18 @@ class PWSafe3(object):
 
     def decrypt_data(self):
         """Decrypt encrypted portion of header and data"""
-        log.debug("Creating decrypt object")
-        tw = Twofish(self.enckey)
-        tw_cbc_decrypt = CBCDecryptor(tw, self.iv)
-
+        log.debug("Creating mcrypt object")
+        tw = MCRYPT('twofish', 'cbc')
+        log.debug("Adding key & iv")
+        tw.init(self.enckey, self.iv)
         log.debug("Decrypting data")
-        self.fulldata = tw_cbc_decrypt(self.cryptdata)
+        self.fulldata = tw.decrypt(self.cryptdata)
 
     def encrypt_data(self):
         """Encrypted fulldata to cryptdata"""
-        tw = Twofish(self.enckey)
-        tw_cbc_encrypt = CBCEncryptor(tw, self.iv)
-        self.cryptdata = tw_cbc_encrypt(self.fulldata)
+        tw = MCRYPT('twofish', 'cbc')
+        tw.init(self.enckey, self.iv)
+        self.cryptdata = tw.encrypt(self.fulldata)
 
     def current_hmac(self, cached = False):
         """Returns the current hmac of self.fulldata"""
@@ -490,14 +451,15 @@ class PWSafe3(object):
             log.debug("Adding hmac data %r from %r" % (i.hmac_data(), i.__class__.__name__))
             data += i.hmac_data()
         log.debug("Building hmac with key %s", repr(self.hshkey))
-        hm = HMAC.new(self.hshkey, data,digestmod=SHA256)
+        hm = HMAC(self.hshkey, data, sha256_mod)
         # print hm.hexdigest()
         log.debug("HMAC %s-%s", repr(hm.hexdigest()), repr(hm.digest()))
         return hm.digest()
 
     def check_password(self):
         """Check that the hash in self.pprime matches what's in the password safe. True if password matches hash in hpprime. False otherwise"""
-        hsh = SHA256.new(self.pprime)
+        hsh = sha256_func()
+        hsh.update(self.pprime)
         return hsh.digest() == self.hpprime
 
     def update_pprime(self):
@@ -760,7 +722,7 @@ class PWSafe3(object):
 
     def _get_lock_data(self):
         """ Returns a string representing the data that should be stored in the lockfile
-        For details about Password Safe's implementation see: https://github.com/pwsafe/pwsafe/blob/master/src/os/windows/file.cpp
+        For details about Password Safe's implementation see: http://passwordsafe.git.sourceforge.net/git/gitweb.cgi?p=passwordsafe/pwsafe.git;a=blob;f=pwsafe/pwsafe/src/os/windows/file.cpp
         """
         pid = os.getpid()
         username = getpass.getuser()
@@ -775,8 +737,8 @@ class PWSafe3(object):
         if the lock has already be acquired by this process or another. 
         Note: Make sure to wrap the post-lock, pre-unlock in a try-finally
         so that the safe is always unlocked. 
-        Note: The type of locking/unlocking used should be compatible with
-        the actual Password Safe app. If the psafe save dir is shared via
+        Note: The type of locking/unlocking used should be compatable with 
+        the actuall Password Safe app. If the psafe save dir is shared via
         NFS/CIFS/etc then users of the share should be able to read/write/lock/unlock
         psafe files. 
         Note: No guarantee that this will work in Windows
@@ -805,7 +767,7 @@ class PWSafe3(object):
                 (lusername, lhostname, lpid) = found[0]
                 if lhostname == socket.gethostbyname():
                     try:  # Check if the other proc is still alive
-                        os.kill(lpid, 0)  # @UndefinedVariable
+                        os.kill(pid, 0)  # @UndefinedVariable
                         log.info("Other process (PID: %r) is alive. Can't override lock for %r ", lpid, self)
                         raise AlreadyLockedError("Other process is alive. Can't override lock. ")
                     except:
