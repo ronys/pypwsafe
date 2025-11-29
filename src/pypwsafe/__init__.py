@@ -31,8 +31,7 @@ from pypwsafe.PWSafeV3Headers import *
 from pypwsafe.PWSafeV3Records import *
 from pypwsafe.errors import *
 import os, os.path
-from struct import pack, unpack
-import logging, logging.config
+import logging.config
 import socket
 import getpass
 import re
@@ -40,8 +39,6 @@ import re
 log = logging.getLogger("psafe.lib.init")
 log.debug('initing')
 from uuid import uuid4
-
-from twofish import Twofish
 
 class CBC:
     def __init__(self, cipher: Twofish, iv: bytes):
@@ -229,13 +226,13 @@ class PWSafe3(object):
             log.debug("Creating new psafe as RW")
             self.mode = "RW"
         elif not psafe_exists and psafe_canwrite and mode != "RW":
-            log.warn("Asked to create a new psafe but mode is set to RO")
+            log.warning("Asked to create a new psafe but mode is set to RO")
             raise AccessError("Asked to create a new safe in RO mode")
         elif psafe_exists:
-            log.warn("Can't read safe %s" % repr(filename))
+            log.warning("Can't read safe %s", filename)
             raise AccessError("Can't read %s" % filename)
         else:
-            log.warn("Safe doesn't exist or can't read directory")
+            log.warning("Safe doesn't exist or can't read directory")
             raise AccessError("No such safe %s" % filename)
         if psafe_exists:
             self.filename = filename
@@ -293,9 +290,8 @@ class PWSafe3(object):
         """
         if self.mode == "RW":
             self.serialiaze()
-            fil = open(self.filename, "w")
-            fil.write(self.flfull)
-            fil.close()
+            with open(self.filename, "wb") as fil:
+                fil.write(self.flfull)
         else:
             raise ROSafe("Safe is not in read/write mode")
 
@@ -325,7 +321,7 @@ class PWSafe3(object):
                                 , self.iv
                             )
         log.debug("Pre-header flfull now %s", (self.flfull,))
-        self.fulldata = ''
+        self.fulldata = b""
         for header in self.headers:
             self.fulldata += header.serialiaze()
             # log.debug("In header flfull now %s",(self.flfull,))
@@ -390,18 +386,17 @@ class PWSafe3(object):
         log.debug('Loading psafe')
         log.debug('len: %d flful: %r' % (len(self.flfull[:152]), self.flfull[:152]))
         (self.tag, self.salt, self.iter, self.hpprime, self.b1b2, self.b3b4, self.iv) = unpack('4s32sI32s32s32s16s', self.flfull[:152])
-        log.debug("Tag: %s" % repr(self.tag))
-        log.debug("Salt: %s" % repr(self.salt))
-        log.debug("Iter: %s" % repr(self.iter))
-        log.debug("H(P'): % s" % repr(self.hpprime))
-        log.debug("B1B2: % s" % repr(self.b1b2))
-        log.debug("B3B4: % s" % repr(self.b3b4))
-        log.debug("IV: % s" % repr(self.iv))
+        log.debug("Tag: %s",self.tag)
+        log.debug("Salt: %s (len=%d)", self.salt.hex(), len(self.salt))
+        log.debug("Iter: %d", self.iter)
+        log.debug("H(P'): %s (len=%d)", self.hpprime.hex(), len(self.hpprime))
+        log.debug("B1B2: %s (len=%d)", self.b1b2.hex(), len(self.b1b2))
+        log.debug("B3B4: %s (len=%d)", self.b3b4.hex(), len(self.b3b4))
+        log.debug("IV: %s (len=%d)", self.iv.hex(), len(self.iv))
         self.cryptdata = self.flfull[152:-48]
         (self.eof, self.hmac) = unpack('16s32s', self.flfull[-48:])
-        log.debug("EOF: % s" % repr(self.eof))
-        log.debug("HMAC: % s" % repr(self.hmac))
-        # Determine the password hash
+        log.debug("EOF: % s", self.eof)
+        log.debug("HMAC: %s (len=%d)", self.hmac.hex(), len(self.hmac))        # Determine the password hash
         self.update_pprime()
         # Verify password
         if not self.check_password():
@@ -444,21 +439,31 @@ class PWSafe3(object):
     def _fetch_block(self, num_blocks = 1):
         """Returns one or more 16 - byte block of data. Raises EOFError when there is no more data. """
         assert num_blocks > 0
-        bytes = num_blocks * 16
-        if bytes > len(self.remaining_headers):
+        num_bytes = num_blocks * 16
+        if num_bytes > len(self.remaining_headers):
             raise EOFError("No more header data")
-        ret = self.remaining_headers[:bytes]
-        self.remaining_headers = self.remaining_headers[bytes:]
+        ret = self.remaining_headers[:num_bytes]
+        self.remaining_headers = self.remaining_headers[num_bytes:]
         return ret
 
     def calc_keys(self):
         """Calculate sessions keys for encryption and hmac. Is based on pprime, b1b2, b3b4"""
         tw = Twofish(self.pprime)
-        self.enckey = tw.decrypt(self.b1b2)
-        # its ok to reuse; ecb doesn't keep state info
-        self.hshkey = tw.decrypt(self.b3b4)
-        log.debug("Encryption key K: %s " % repr(self.enckey))
-        log.debug("HMAC Key L: %s " % repr(self.hshkey))
+        b1 = self.b1b2[:16]
+        b2 = self.b1b2[16:]
+        d1 = tw.decrypt(b1)
+        d2 = tw.decrypt(b2)
+
+        self.enckey = d1 + d2
+
+        b3 = self.b3b4[:16]
+        b4 = self.b3b4[16:]
+        # it's ok to reuse; ecb doesn't keep state info
+        d3 = tw.decrypt(b3)
+        d4 = tw.decrypt(b4)
+        self.hshkey = b3 + b4
+        log.debug("Encryption key K: %s ",self.enckey.hex())
+        log.debug("HMAC Key L: %s ", self.hshkey.hex())
 
     def decrypt_data(self):
         """Decrypt encrypted portion of header and data"""
@@ -803,7 +808,7 @@ class PWSafe3(object):
             log.debug("Got %r from the lock", found)
             if len(found) == 1:
                 (lusername, lhostname, lpid) = found[0]
-                if lhostname == socket.gethostbyname():
+                if lhostname == socket.gethostname():
                     try:  # Check if the other proc is still alive
                         os.kill(lpid, 0)  # @UndefinedVariable
                         log.info("Other process (PID: %r) is alive. Can't override lock for %r ", lpid, self)
@@ -825,7 +830,7 @@ class PWSafe3(object):
         # Should generate an OS error if the file already exists
         try:
             fd = os.open(lfile, os.O_CREAT | os.O_EXCL | os.O_RDWR)
-            os.write(fd, self._get_lock_data())
+            os.write(fd, self._get_lock_data().encode("utf-8"))
             os.close(fd)
         except OSError as e:
             log.info("%r reported as unlocked but can't create the lockfile", self)
@@ -839,7 +844,7 @@ class PWSafe3(object):
             log.info("%r is not locked. Failing to unlock. ", self)
             raise NotLockedError("Not currently locked")
         try:
-            os.remove(self.locked)
+            os.remove(self._get_lock_data().encode("utf-8"))
             self.locked = False
             log.debug("%r for %r is unlocked", self.locked, self)
         except OSError:
@@ -865,9 +870,8 @@ class PWSafe3(object):
 # Misc helper functions
 def ispsafe3(filename):
     """Return True if the file appears to be a psafe v3 file. Does not do in-depth checks. """
-    fil = open(filename, "r")
-    data = fil.read(4)
-    fil.close()
+    with open(filename, "rb") as fil:
+        data = fil.read(4)
     return data == "PWS3"
 
 if __name__ == "__main__":
