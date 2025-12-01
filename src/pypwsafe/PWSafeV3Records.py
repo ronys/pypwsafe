@@ -27,7 +27,7 @@
 
 from struct import unpack, pack
 import calendar, time
-import logging, logging.config
+import logging.config
 from .errors import *
 import os
 from uuid import UUID, uuid4
@@ -115,7 +115,7 @@ class Record(object):
 
     def hmac_data(self):
         """Returns the data required for the "broken" hmac in psafe3. See bug 1812081. """
-        ret = ''
+        ret = b''
         for i in self.records:
             # the data field has the data minus the padding
             #if i.serial()!=i.data:
@@ -240,7 +240,7 @@ class Record(object):
                             password = passwd,
                             saved = datetime.datetime(*tm[:6]),
                             ))
-        ret.sort(lambda a, b: cmp(a['saved'], b['saved']))
+        ret.sort(key=lambda a: a['saved'])
         return ret
     
     def _find_hist(self):
@@ -383,8 +383,8 @@ class _RecordPropType(type):
 #     Record Prop
 class RecordProp(object, metaclass=_RecordPropType):
     """A single property of a psafe3 record. This represents an unknown type or is overridden by records of a known type.
-    rTYPE        int        Properity type. May be null.
-    rNAME        string        Code name of properity type.
+    rTYPE        int        Property type. May be null.
+    rNAME        string        Code name of property type.
     type        int        Prop type.
     len        int        Length, in bytes, of data
     raw_data    string        Record data including padding and headers
@@ -502,7 +502,7 @@ class UUIDRecordProp(RecordProp):
 
     def serial(self):
         #psafe_logger.debug("Serial to %s",repr(pack('=16s',str(self.uuid.bytes))))
-        return pack('=16s', str(self.uuid.bytes))
+        return pack('=16s', self.uuid.bytes)
 
 class GroupRecordProp(RecordProp):
     """Record's Group
@@ -644,8 +644,8 @@ class UsernameRecordProp(RecordProp):
 
 class NotesRecordProp(RecordProp):
     """Record notes
-    notes        string        ...
->>> x=NotesRecordProp(0x5,10,'\n\x00\x00\x00\x05more notes\x8c')
+        notes        string        ...
+        >>> x=NotesRecordProp(0x5,10,'\n\x00\x00\x00\x05more notes\x8c')
 >>> str(x)
 "Notes='more notes'"
 >>> repr(x)
@@ -1800,7 +1800,7 @@ def Create_Prop(fetchblock_f):
     psafe_logger.debug('rtype %s rlen %s' % (rTYPE, rlen))
     data = firstblock[5:]
     if rlen > len(data):
-        data += fetchblock_f(((rlen - len(data) - 1) / 16) + 1)
+        data += fetchblock_f(((rlen - len(data) - 1) // 16) + 1)
     assert rlen <= len(data)
     #print "Creating records with %s"%repr((rTYPE,rlen,data,len(data)))
     # Lazy way to add the header data back

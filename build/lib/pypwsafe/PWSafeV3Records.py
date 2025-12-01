@@ -502,7 +502,7 @@ class UUIDRecordProp(RecordProp):
 
     def serial(self):
         #psafe_logger.debug("Serial to %s",repr(pack('=16s',str(self.uuid.bytes))))
-        return pack('=16s', str(self.uuid.bytes))
+        return pack('=16s', self.uuid.bytes)
 
 class GroupRecordProp(RecordProp):
     """Record's Group
@@ -549,7 +549,7 @@ class GroupRecordProp(RecordProp):
     def serial(self):
         self.group_str = '.'.join(self.group)
         #psafe_logger.debug("Serial to %s Data %s"%(repr(self.group_str),repr(self.data)))
-        return self.group_str
+        return self.group_str.encode('utf-8')
 
 class TitleRecordProp(RecordProp):
     """Record's title
@@ -595,7 +595,7 @@ class TitleRecordProp(RecordProp):
 
     def serial(self):
         #psafe_logger.debug("Serial to %s data %s"%(repr(self.title),repr(self.data)))
-        return self.title
+        return self.title.encode('utf-8')
 
 class UsernameRecordProp(RecordProp):
     """Record's username
@@ -640,7 +640,7 @@ class UsernameRecordProp(RecordProp):
 
     def serial(self):
         #psafe_logger.debug("Serial to %s data %s"%(repr(self.username),repr(self.data)))
-        return self.username
+        return self.username.encode('utf-8')
 
 class NotesRecordProp(RecordProp):
     """Record notes
@@ -685,7 +685,7 @@ class NotesRecordProp(RecordProp):
 
     def serial(self):
         #psafe_logger.debug("Serial to %s data %s"%(repr(self.notes),repr(self.data)))
-        return self.notes
+        return self.notes.encode('utf-8')
 
 class PasswordRecordProp(RecordProp):
     """Record's  password
@@ -730,7 +730,7 @@ class PasswordRecordProp(RecordProp):
 
     def serial(self):
         #psafe_logger.debug("Serial to %s data %s"%(repr(self.password),repr(self.data)))
-        return self.password
+        return self.password.encode('utf-8')
 
 class CreationTimeRecordProp(RecordProp):
     """Record's  ctime
@@ -998,7 +998,7 @@ class URLRecordProp(RecordProp):
 
     def serial(self):
         #psafe_logger.debug("Serial to %s data %s"%(repr(self.url),repr(self.data)))
-        return self.url
+        return self.url.encode('utf-8')
 
 class AutotypeRecordProp(RecordProp):
     """Record's title
@@ -1043,7 +1043,7 @@ class AutotypeRecordProp(RecordProp):
 
     def serial(self):
         #psafe_logger.debug("Serial to %s data %s"%(repr(self.autotype),repr(self.data)))
-        return self.autotype
+        return self.autotype.encode('utf-8')
 
 class PasswordHistoryRecordProp(RecordProp):
     """Record's old passwords
@@ -1097,7 +1097,7 @@ where:
             RecordProp.__init__(self, ptype, plen, pdata)
 
     def serial(self):
-        ret = ''
+        ret = b''
         if self.enabled:
             ret += "1"
         else:
@@ -1296,7 +1296,7 @@ where:
             flags = flags | self.MAKEPRONOUNCEABLE
         ret = '%04x%03x%03x%03x%03x%03x' % (flags, self.ttllen, self.minlow, self.minup, self.mindig, self.minsym)
         #psafe_logger.debug("Serial to %s data %s"%(repr(ret),repr(self.data)))    
-        return ret
+        return ret.encode('utf-8')
 
     def parse(self):
         self.mydata = self.data[:self.len]
@@ -1469,7 +1469,7 @@ class RunCommandRecordProp(RecordProp):
 
     def serial(self):
         #psafe_logger.debug("Serial to %s data %s"%(repr(self.url),repr(self.data)))
-        return self.runCommand
+        return self.runCommand.encode('utf-8')
 
 class DoubleClickActionRecordProp(RecordProp):
     """ Double click action 
@@ -1564,7 +1564,7 @@ prefix. This field was introduced in version 0x0306 (PasswordSafe V3.19).
 
     def serial(self):
         #psafe_logger.debug("Serial to %s data %s"%(repr(self.url),repr(self.data)))
-        return self.emailAddress
+        return self.emailAddress.encode('utf-8')
 
 class ProtectedEntryRecordProp(RecordProp):
     """ Is the entry protected from being changed/deleted. 
@@ -1603,7 +1603,7 @@ means that the entry is protected.
         self.isProtected = bool(value)
 
     def serial(self):
-        ret = str(self.isProtected)
+        ret = str(self.isProtected).encode('utf-8')
         psafe_logger.debug("Serial to %s data %s for %r" % (repr(ret), repr(self.data), self.__class__))
         return ret
 
@@ -1643,7 +1643,7 @@ set. This field is mutually exclusive with the policy name field
 
     def serial(self):
         #psafe_logger.debug("Serial to %s data %s"%(repr(self.url),repr(self.data)))
-        return self.symbols
+        return self.symbols.encode('utf-8')
 
 class ShiftDoubleClickActionRecordProp(RecordProp):
     """ Shift Double click action 
@@ -1740,7 +1740,7 @@ symbols for password field [0x16]. This was introduced in version
 
     def serial(self):
         #psafe_logger.debug("Serial to %s data %s"%(repr(self.url),repr(self.data)))
-        return self.symbols
+        return self.symbols.encode('utf-8')
 
 class EOERecordProp(RecordProp):
     """End of entry
@@ -1780,7 +1780,7 @@ class EOERecordProp(RecordProp):
         raise ValueError("Can't set data to the EOE record")
 
     def serial(self):
-        return ''
+        return b''
 
 def parsedatetime(data):
     """Takes in the raw psafev3 data for a time value and returns a date/time tuple"""

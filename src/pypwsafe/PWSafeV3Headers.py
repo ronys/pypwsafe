@@ -205,7 +205,7 @@ DHeader(1,16,'\x10\x00\x00\x00\x01\xbdV\x92{H\xdbL\xec\xbb+\xe90w5\x17\xa2P6b\xe
         return "UUID=%s" % repr(self.uuid)
 
     def serial(self):
-        return pack('=16s', str(self.uuid.bytes))
+        return pack('=16s', self.uuid.bytes)
 
 class NonDefaultPrefsHeader(Header):
     """Version header object
@@ -216,7 +216,7 @@ K:V for opts:
     
 
 >>> x=NonDefaultPrefsHeader(2,70,'B 1 1 B 2 1 B 28 1 B 29 1 B 31 1 B 50 0 I 12 255 I 17 1 I 18 1 I 20 1 ')
->>> x=NonDefaultPrefsHeader(2,86,'B 1 1 B 2 1 B 28 1 B 29 1 B 31 1 B 50 0 I 12 255 I 17 1 I 18 1 I 20 1 S 3 \'adfasdfs"\' ')
+>>> x=NonDefaultPrefsHeader(2,86,'B 1 1 B 2 1 B 28 1 B 29 1 B 31 1 B 50 0 I 12 255 I 17 1 I 18 1 I 20 1 S 3 "adfasdfs" ')
 # FIXME: Fill in tests
     """
     TYPE = 0x02
@@ -233,7 +233,7 @@ K:V for opts:
     def parse(self):
         """Parse data"""
         self.opts = {}
-        remander = self.data.split(' ')
+        remander = self.data.decode('utf-8').split(' ')
         while len(remander) > 2:
             # Pull out the data
             rtype = str(remander[0])
@@ -954,7 +954,7 @@ def Create_Header(fetchblock_f):
     data = firstblock[5:]
     log.debug("Rtype: %s Len: %s" % (rtype, rlen))
     if rlen > len(data):
-        data += fetchblock_f(((rlen - len(data) - 1) / 16) + 1)
+        data += fetchblock_f(((rlen - len(data) - 1) // 16) + 1)
     assert rlen <= len(data)
     # TODO: Clean up header add back
     data = firstblock[:5] + data

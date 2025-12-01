@@ -15,15 +15,14 @@
 #    You should have received a copy of the GNU General Public License
 #    along with PyPWSafe.  If not, see http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 #===============================================================================
-''' Run unit tests
+""" Run unit tests
 Created on Jan 19, 2013
 
 @author: Paulson McIntyre (GpMidi) <paul@gpmidi.net>
 @license: GPLv2
 @version: 0.1
-'''
-import unittest
-import os, os.path, sys
+"""
+
 
 import logging
 logging.basicConfig(

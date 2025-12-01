@@ -482,7 +482,7 @@ class PWSafe3(object):
 
     def current_hmac(self, cached = False):
         """Returns the current hmac of self.fulldata"""
-        data = ''
+        data = b''
         for i in self.headers:
             log.debug("Adding hmac data %r from %r" % (i.hmac_data(), i.__class__.__name__))
             if cached:
