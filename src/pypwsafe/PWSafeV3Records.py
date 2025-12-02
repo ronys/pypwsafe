@@ -120,7 +120,10 @@ class Record(object):
             # the data field has the data minus the padding
             #if i.serial()!=i.data:
             #    psafe_logger.warn('Serial != data for class %s. s: %s d: %s'%(repr(i.__class__),repr(i.serial()),repr(i.data)))
-            ret += i.serial()
+            val = i.serial()
+            if not isinstance(val, bytes):
+                psafe_logger.debug("val is of type %s", type(val).__name__)
+            ret += val
         return ret
 
     def serialiaze(self):
@@ -532,7 +535,7 @@ class GroupRecordProp(RecordProp):
 
     def parse(self):
         self.group_str = self.data
-        self.group = self.group_str.split('.')
+        self.group = self.group_str.split(b'.')
 
     def __repr__(self):
         return "Group" + RecordProp.__repr__(self)
@@ -547,7 +550,7 @@ class GroupRecordProp(RecordProp):
         self.group = value
 
     def serial(self):
-        self.group_str = '.'.join(self.group)
+        self.group_str = b'.'.join(self.group)
         #psafe_logger.debug("Serial to %s Data %s"%(repr(self.group_str),repr(self.data)))
         return self.group_str
 
@@ -1097,21 +1100,21 @@ where:
             RecordProp.__init__(self, ptype, plen, pdata)
 
     def serial(self):
-        ret = ''
+        ret = b''
         if self.enabled:
-            ret += "1"
+            ret += b"1"
         else:
-            ret += "0"
-        ret += "%02x" % self.maxsize
-        ret += "%02x" % len(self.history)
+            ret += b"0"
+        ret += b"%02x" % self.maxsize
+        ret += b"%02x" % len(self.history)
         psafe_logger.debug("Pre-passwords %s" % repr(ret))
         for (tm, passwd) in self.history:
-            ret += "%08x" % calendar.timegm(tm)
-            ret += "%04x" % len(passwd)
+            ret += b"%08x" % calendar.timegm(tm)
+            ret += b"%04x" % len(passwd)
             ret += passwd
             psafe_logger.debug("Post-add password %s" % repr(ret))
         if len(self.history) == 0 and self.zerohack:
-            ret += "00"
+            ret += b"00"
         #psafe_logger.debug("Serial to %s data %s"%(repr(ret),repr(self.data)))
         return ret
 
@@ -1122,9 +1125,9 @@ where:
             self.zerohack = False
         if len(self.data) > 0:
             # Enabled/disabled
-            if self.data[0] == "0":
+            if self.data[0] == ord('0'):
                 self.enabled = False
-            elif self.data[0] == "1":
+            elif self.data[0] == ord('1'):
                 self.enabled = True
             else:
                 raise PropParsingError("Invalid enabled/disabled flag %s" % repr(self.data[0]))
@@ -1294,7 +1297,7 @@ where:
             flags = flags | self.USEEASYVERSION
         if self.makepron:
             flags = flags | self.MAKEPRONOUNCEABLE
-        ret = '%04x%03x%03x%03x%03x%03x' % (flags, self.ttllen, self.minlow, self.minup, self.mindig, self.minsym)
+        ret = b'%04x%03x%03x%03x%03x%03x' % (flags, self.ttllen, self.minlow, self.minup, self.mindig, self.minsym)
         #psafe_logger.debug("Serial to %s data %s"%(repr(ret),repr(self.data)))    
         return ret
 
@@ -1603,7 +1606,7 @@ means that the entry is protected.
         self.isProtected = bool(value)
 
     def serial(self):
-        ret = str(self.isProtected)
+        ret = b'1' if self.isProtected else b'0'
         psafe_logger.debug("Serial to %s data %s for %r" % (repr(ret), repr(self.data), self.__class__))
         return ret
 
@@ -1780,7 +1783,7 @@ class EOERecordProp(RecordProp):
         raise ValueError("Can't set data to the EOE record")
 
     def serial(self):
-        return ''
+        return b''
 
 def parsedatetime(data):
     """Takes in the raw psafev3 data for a time value and returns a date/time tuple"""

@@ -305,7 +305,7 @@ K:V for opts:
         return "NonDefaultPrefs=%s" % pformat(self.opts)
 
     def serial(self):
-        ret = ''
+        ret = b''
         for name, value in list(self.opts.items()):
             if name not in conf_types:
                 raise PrefsValueError("%r is not a valid configuration option" % name)
@@ -322,13 +322,13 @@ K:V for opts:
                     value = 0
                 else:
                     raise PrefsDataTypeError("%r is not a valid value for the key %r" % (value, name))
-                ret += "B %d %d " % (conf_bools[name]['index'], value)
+                ret += b"B %d %d " % (conf_bools[name]['index'], value)
             elif typ == int:
                 value = int(value)
                 if value == conf_ints[name]['default']:
                     # Default value - Don't save
                     continue
-                ret += "I %d %d " % (conf_ints[name]['index'], value)
+                ret += b"I %d %d " % (conf_ints[name]['index'], value)
             elif typ == str:
                 value = str(value)
                 if value == conf_strs[name]['default']:
@@ -342,8 +342,8 @@ K:V for opts:
                     else:
                         del delms[0]
                 if not delm:
-                    raise UnableToFindADelimitersError("Couldn't find a delminator for %r" % value)
-                ret += "S %d %s%s%s " % (conf_strs[name]['index'], delm, value, delm)
+                    raise UnableToFindADelimitersError("Couldn't find a delimiter for %r" % value)
+                ret += b"S %d %s%s%s " % (conf_strs[name]['index'], delm, value, delm)
             else:
                 raise PrefsDataTypeError("Unexpected record type for preferences %r" % typ)
         return ret
