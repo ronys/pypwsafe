@@ -25,14 +25,15 @@ Created on Jan 19, 2013
 
 
 import logging
+import sys
+import unittest
+
 logging.basicConfig(
                     level = logging.DEBUG,
                     format="%(levelname)s:%(name)s:%(message)s"
                     #filename = '/tmp/pypwsafe_unittests.log',
                     #filemode = 'w',
                     )
-
-from PWSv3Headers import *
 
 if __name__ == '__main__':
     sys.path.append("../src")

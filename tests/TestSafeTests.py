@@ -47,7 +47,7 @@ class TestSafeTestBase(unittest.TestCase):
         # Make a temp dir and make a copy
         self.safeDir = mkdtemp(prefix = "safe_test_%s" % type(self).__name__)
         
-        # COpy the safe
+        # Copy the safe
         self.ourTestSafe = os.path.join(
                                         self.safeDir,
                                         os.path.basename(self.testSafe),
