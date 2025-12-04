@@ -15,6 +15,7 @@ for new patches.
 
 Known Issues
 ============ 
+ 0. This is currently (Dec. 2025) broken under Python 3. The twofish module it depends on requires 'imp', which was replaced by implib. Even using Python 3.10, which still supported imp, I couldn't get it to pass the test suite.
  1. Lack of documentation
  2. Unit tests are out-of-date
  3. There MAY be an issue with the order that NonDefaultPrefsHeader serializes preferences for HMAC validation in pypwsafe. Although the library validates HMACs fine at the moment, so who knows. 
@@ -23,6 +24,7 @@ Known Issues
 Dependencies
 ============
 PyCryptodome
+Missing a Twofish implementation (See Know Issues)
 
 Install Instructions
 ====================
@@ -72,4 +74,5 @@ As of today, it can be found [here](https://github.com/pwsafe/pwsafe/blob/master
 	
 TODO
 ====
-1. Need to update against the latest version of the official pwsafe format v3 doc.
+1. Make it work under current Python 3.
+2. Need to update against the latest version of the official pwsafe format v3 doc.
