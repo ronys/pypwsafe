@@ -1,8 +1,12 @@
 Introduction
 ============
-A pure-Python library that can read and write Password Safe v3 
+A pure-Python2 library that can read and write Password Safe v3 
 files. It includes full support for almost all current Password
 Safe v3 database headers and record headers. 
+
+Note
+====
+Since this was written, the main (PasswordSafe project)[https://github.com/pwsafe/pwsafe] has added a cli version (pwsafe-cli) as part of the deliverables. That may be preferable, both for performance and compatibility, to using this.
 
 History
 =======
@@ -27,6 +31,26 @@ Dependencies
 
 Install Instructions
 ====================
+
+Docker
+------
+Here's a Dockerfile from liath
+```
+FROM python:2-alpine
+
+RUN apk add --no-cache gcc git libmcrypt-dev musl-dev && \
+  pip install python2-mcrypt pycrypto && \
+  git clone https://github.com/ronys/pypwsafe.git /app
+WORKDIR /app
+RUN python setup.py install && python -c "import pypwsafe"
+
+ENTRYPOINT ["/usr/local/bin/python", "/app/pwsafecli/psafedump"]
+```
+To run:
+```
+docker build -t pypwsafe .
+docker run --rm -it -v "${PWD}:/work" --workdir /work pypwsafe -f /work/Backup.psafe3 -p xxx
+```
 
 RHEL/CentOS
 -----------
