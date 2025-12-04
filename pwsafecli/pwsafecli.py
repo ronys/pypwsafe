@@ -280,7 +280,7 @@ def update_action(options): # pragma: no cover
             raise PWSafeCLIError("No records matching %s found" % record_options)
         elif count > 1:
             raise NotImplementedError("implement multiple record choice")
-        add_or_update_records(safe, records[0], options)
+        add_or_update_record(safe, records[0], options)
 
 usage_message = """
 Usage: psafecli [add|delete|get|init|update]
